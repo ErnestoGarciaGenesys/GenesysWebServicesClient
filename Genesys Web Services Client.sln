@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cometd", "..\..\..\GitHub\CometD.NET\cometd.csproj", "{CE60C8C6-3F04-447B-946C-D22397E39EC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{4E81D71A-8636-49E0-AD21-E845D26D32E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343} = {E918FCC4-EA5C-4E4C-959E-DB4A8907E343}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient", "Genesys.WebServicesClient\Genesys.WebServicesClient.csproj", "{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Sample.Agent.WPF", "Genesys.WebServicesClient.Sample.Agent\Genesys.WebServicesClient.Sample.Agent.WPF.csproj", "{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Components", "Genesys.WebServicesClient.Components\Genesys.WebServicesClient.Components.csproj", "{E0E4D679-73A4-4FE8-B387-A3252841C1B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Sample.Agent.WinForms", "Genesys.WebServicesClient.Sample.Agent.WinForms\Genesys.WebServicesClient.Sample.Agent.WinForms.csproj", "{C3E75C6A-738E-415D-82AA-BADAED6E6352}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0E4D679-73A4-4FE8-B387-A3252841C1B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0E4D679-73A4-4FE8-B387-A3252841C1B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0E4D679-73A4-4FE8-B387-A3252841C1B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0E4D679-73A4-4FE8-B387-A3252841C1B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
