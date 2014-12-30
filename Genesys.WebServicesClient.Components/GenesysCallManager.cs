@@ -16,14 +16,14 @@ namespace Genesys.WebServicesClient.Components
         readonly BindingList<GenesysCall> calls = new BindingList<GenesysCall>();
         public BindingList<GenesysCall> Calls { get { return calls; } }
 
-        protected override void InitializeImpl()
+        protected override void ActivateImpl()
         {
             User.CallManager = this;
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void DeactivateImpl()
         {
-            base.Dispose(disposing);
+            User.CallManager = null;
         }
 
         public GenesysUser User

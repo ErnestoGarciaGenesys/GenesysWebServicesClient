@@ -17,39 +17,18 @@ namespace Genesys.WebServicesClient.Components
 
         internal GenesysCallManager CallManager;
 
-        /// <summary>
-        /// When using this constructor, this instance must be disposed explicitly.
-        /// </summary>
-        public GenesysUser() { }
-
-        /// <summary>
-        /// When using this constructor, this instance will be automatically disposed by the parent container.
-        /// </summary>
-        public GenesysUser(IContainer container)
-            : this()
+        protected override void ActivateImpl()
         {
-            container.Add(this);
-        }
-
-        protected override void InitializeImpl()
-        {
-            Connection.Initialize();
-
             EventReceiver = Connection.Client.CreateEventReceiver();
             EventReceiver.Open();
             EventReceiver.SubscribeAll(HandleEvent);
             RefreshAgent();
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void DeactivateImpl()
         {
-            if (disposing)
-            {
-                if (EventReceiver != null)
-                    EventReceiver.Dispose();
-            }
-
-            base.Dispose(disposing);
+            if (EventReceiver != null)
+                EventReceiver.Dispose();
         }
 
         /// <summary>
@@ -99,6 +78,7 @@ namespace Genesys.WebServicesClient.Components
         {
             // doc: http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
             var response = await Connection.Client.CreateRequest("GET", "/api/v2/me?subresources=*").SendAsync<UserResourceResponse>();
+
             RefreshAgentState(response.AsType.user.devices);
             if (UserResourceUpdated != null)
                 UserResourceUpdated(response.AsDictionary);

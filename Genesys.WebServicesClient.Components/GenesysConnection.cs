@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysConnection : AutoInitComponent
+    public class GenesysConnection : ActiveComponent
     {
         GenesysClient client;
 
@@ -23,7 +23,7 @@ namespace Genesys.WebServicesClient.Components
 
         // Reimplementing property for giving different attributes and implementation.
         [ReadOnly(true), Browsable(false), DefaultValue(false)]
-        public override bool AutoInitialize
+        public override bool AutoActivate
         {
             get { return false; }
             set { }
@@ -46,7 +46,7 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        protected override void InitializeImpl()
+        protected override void ActivateImpl()
         {
             client = new GenesysClient.Setup()
             {
@@ -57,18 +57,10 @@ namespace Genesys.WebServicesClient.Components
             .Create();
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void DeactivateImpl()
         {
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                if (client != null)
-                {
-                    client.Dispose();
-                    client = null;
-                }
-            }
+            client.Dispose();
+            client = null;
         }
 
         internal GenesysClient Client

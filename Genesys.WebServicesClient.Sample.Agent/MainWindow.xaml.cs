@@ -118,9 +118,9 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
         void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            genesysAgent.Initialize();
-            genesysCallManager.Initialize();
-            genesysConnection.Initialize();
+            genesysAgent.Activate();
+            genesysCallManager.Activate();
+            genesysConnection.Activate();
             UpdateUserDataGrid();
         }
 

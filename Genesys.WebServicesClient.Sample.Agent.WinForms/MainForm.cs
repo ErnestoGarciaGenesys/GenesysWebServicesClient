@@ -37,6 +37,10 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
             CreateBinding(initiateTransferButton, "Enabled", genesysCallManager, "InitiateTransferCapable");
             CreateBinding(completeTransferButton, "Enabled", genesysCallManager, "CompleteTransferCapable");
+
+            genesysConnection.ActiveChanged += (s, e) => RefreshConnectionComponents();
+            genesysConnection.Disposed += (s, e) => RefreshConnectionComponents();
+            RefreshConnectionComponents();
         }
 
         Binding CreateBinding(Control control, string propertyName, object dataSource, string dataMember)
@@ -69,12 +73,20 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             
             return binding;
         }
-        
+
+        void RefreshConnectionComponents()
+        {
+            usernameTextBox.Enabled = !genesysConnection.Active;
+            passwordTextBox.Enabled = !genesysConnection.Active;
+            connectButton.Enabled = !genesysConnection.Active;
+            disconnectButton.Enabled = genesysConnection.Active;
+        }
+
         void connectButton_Click(object sender, EventArgs e)
         {
             genesysConnection.Username = usernameTextBox.Text;
             genesysConnection.Password = passwordTextBox.Text;
-            genesysConnection.Initialize();
+            genesysConnection.Activate();
         }
 
         void disconnectButton_Click(object sender, EventArgs e)

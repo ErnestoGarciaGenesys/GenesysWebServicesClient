@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public abstract class NotifyPropertyChangedComponent : AutoInitComponent, INotifyPropertyChanged
+    public abstract class NotifyPropertyChangedComponent : ActiveComponent, INotifyPropertyChanged
     {
         IDictionary<string, object> attributeValues = new Dictionary<string, object>();
 

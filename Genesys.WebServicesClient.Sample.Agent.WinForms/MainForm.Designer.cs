@@ -42,7 +42,7 @@
             this.phoneNumberTextBox = new System.Windows.Forms.TextBox();
             this.activeCallIdLabel = new System.Windows.Forms.Label();
             this.agentStateLabel = new System.Windows.Forms.Label();
-            this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser(this.components);
+            this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
             this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
             this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysCallManager();
             this.connectButton = new System.Windows.Forms.Button();
