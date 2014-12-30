@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using Cometd.Bayeux;
+using System.Web.Script.Serialization;
 
 namespace Genesys.WebServicesClient
 {
     public class GenesysEvent
     {
-        private IMessage message;
+        static readonly JavaScriptSerializer JsonParser = new JavaScriptSerializer();
+        
+        readonly IMessage message;
 
         public GenesysEvent(IMessage message)
         {
@@ -20,6 +23,22 @@ namespace Genesys.WebServicesClient
         public IDictionary<string, object> Data
         {
             get { return message.DataAsDictionary; }
+        }
+
+        public string MessageType
+        {
+            get { return Data["messageType"] as string; }
+        }
+
+        public string NotificationType
+        {
+            get { return Data["notificationType"] as string; }
+        }
+
+        public T GetResourceAsType<T>(string resourceKey)
+        {
+            object resource = Data[resourceKey];
+            return JsonParser.ConvertToType<T>(resource);
         }
     }
 }

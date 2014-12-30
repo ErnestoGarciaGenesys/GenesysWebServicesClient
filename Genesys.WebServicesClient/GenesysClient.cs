@@ -129,7 +129,7 @@ namespace Genesys.WebServicesClient
 
                 set
                 {
-                    if (value.EndsWith("/"))
+                    if (value != null && value.EndsWith("/"))
                         throw new ArgumentException("Server URI must not end with a slash '/'");
                     
                     serverUri = value;

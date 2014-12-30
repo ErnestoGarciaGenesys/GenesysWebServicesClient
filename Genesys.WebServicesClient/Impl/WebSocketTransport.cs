@@ -22,10 +22,9 @@ namespace Genesys.WebServicesClient.Impl
     // implement Bayeux on top of WebSockets.
     //
     // Oyatel's CometD are a translation of CometD Java to .NET. They don't offer a WebSocket implementation, but
-    // it can be provided the same way by translating the CometD Java WebSocketTransport.
+    // it can be provided by translating the CometD Java WebSocketTransport.
     // 
-    // This is the main reason Oyatel's libraries were selected.
-    //
+    // This is the main reason Oyatel's libraries are chosen here.
 
     /// <summary>
     /// This is a translation of CometD Java WebSocketTransport. The translation has been kept as close as

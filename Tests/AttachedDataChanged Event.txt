@@ -1,0 +1,39 @@
+﻿{
+	"data": {
+		"messageType": "CallStateChangeMessage",
+		"notificationType": "AttachedDataChanged",
+		"call": {
+			"id": "0071025563e9f00f",
+			"state": "Established",
+			"callUuid": "00QEAG4KU4A5P78IG2DAHG5AES00000F",
+			"deviceUri": "http://192.168.154.128/api/v2/devices/bf78972f-a0f3-44da-9ca6-0a9a7ec5dbea",
+			"uri": "http://192.168.154.128/api/v2/me/calls/0071025563e9f00f",
+			"participants": ["1001"],
+			"participantsInfo": [{
+				"digits": "1001",
+				"e164Number": "1001",
+				"formattedPhoneNumber": "1001"
+			}],
+			"dnis": "1000",
+			"callType": "Internal",
+			"capabilities": ["SingleStepTransfer",
+			"InitiateConference",
+			"AttachUserData",
+			"Hangup",
+			"SingleStepConference",
+			"Hold",
+			"InitiateTransfer",
+			"DeleteUserDataPair",
+			"SendDtmf",
+			"DeleteUserData",
+			"UpdateUserData"],
+			"userData": {
+				"hello": "hola"
+			},
+			"duration": "13",
+			"mute": "Off"
+		},
+		"phoneNumber": "1000"
+	},
+	"channel": "/v2/me/calls"
+}

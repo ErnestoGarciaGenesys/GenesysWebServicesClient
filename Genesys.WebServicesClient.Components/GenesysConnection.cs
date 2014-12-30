@@ -7,25 +7,48 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysConnection : IComponent
+    public class GenesysConnection : AutoInitComponent
     {
+        GenesysClient client;
+
+        [Category("Connection")]
         public string ServerUri { get; set; }
+
+        // Username is spelled altogether (not userName), as in http://docs.genesys.com/Documentation/HTCC/8.5.2/API/GetUserInfo
+        [Category("Connection")]
         public string Username { get; set; }
+        
+        [Category("Connection")]
         public string Password { get; set; }
 
-        internal GenesysClient Client { get; private set; }
-
-        public GenesysConnection(String serverUri, String username, String password)
+        // Reimplementing property for giving different attributes and implementation.
+        [ReadOnly(true), Browsable(false), DefaultValue(false)]
+        public override bool AutoInitialize
         {
-            this.ServerUri = serverUri;
-            this.Username = username;
-            this.Password = password;
+            get { return false; }
+            set { }
         }
 
-        public GenesysConnection() { }
+        /// <summary>
+        /// When using this constructor, this instance must be disposed explicitly.
+        /// </summary>
+        public GenesysConnection()
+        {
+            isParent = true;
+        }
 
-        public void Initialize() {
-            Client = new GenesysClient.Setup()
+        /// <summary>
+        /// When using this constructor, this instance will be automatically disposed by the parent container.
+        /// </summary>
+        public GenesysConnection(IContainer container)
+            : this()
+        {
+            container.Add(this);
+        }
+
+        protected override void InitializeImpl()
+        {
+            client = new GenesysClient.Setup()
             {
                 ServerUri = ServerUri,
                 UserName = Username,
@@ -33,15 +56,24 @@ namespace Genesys.WebServicesClient.Components
             }
             .Create();
         }
-        
-        #region IComponent
 
-        public event EventHandler Disposed;
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
 
-        public ISite Site { get; set; }
+            if (disposing)
+            {
+                if (client != null)
+                {
+                    client.Dispose();
+                    client = null;
+                }
+            }
+        }
 
-        public void Dispose() { }
-
-        #endregion IComponent
+        internal GenesysClient Client
+        {
+            get { return client; }
+        }
     }
 }

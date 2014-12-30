@@ -3,3 +3,7 @@ obj/
 packages/
 *.suo
 *.user
+*.TMP
+/Genesys.WebServicesClient.Components/*.TMP
+/Genesys.WebServicesClient.Sample.Agent.WinForms/*.TMP
+/Genesys.WebServicesClient.Sample.Agent/obj/Debug/*.TMP

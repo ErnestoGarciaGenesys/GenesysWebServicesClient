@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,8 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Genesys.WebServicesClient</RootNamespace>
     <AssemblyName>Genesys.WebServicesClient</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -45,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GenesysMethodException.cs" />
+    <Compile Include="IGenesysResponse.cs" />
+    <Compile Include="GenesysTypedResponseBase.cs" />
     <Compile Include="IEventSubscription.cs" />
     <Compile Include="GenesysClient.cs" />
     <Compile Include="GenesysEvent.cs" />
@@ -54,18 +60,23 @@
     <Compile Include="InvalidGenesysResponseException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Impl\WebSocketTransport.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\GitHub\CometD.NET\cometd.csproj">
-      <Project>{ce60c8c6-3f04-447b-946c-d22397e39ec6}</Project>
-      <Name>cometd</Name>
-    </ProjectReference>
+    <Compile Include="Resources\CallResource.cs" />
+    <Compile Include="Resources\DeviceResource.cs" />
+    <Compile Include="Resources\UserResource.cs" />
+    <Compile Include="Resources\UserResourceResponse.cs" />
+    <Compile Include="Resources\UserState.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CometD.NET\cometd.csproj">
+      <Project>{ce60c8c6-3f04-447b-946c-d22397e39ec6}</Project>
+      <Name>cometd</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

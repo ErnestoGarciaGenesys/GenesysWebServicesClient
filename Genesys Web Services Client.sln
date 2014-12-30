@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cometd", "..\..\..\GitHub\CometD.NET\cometd.csproj", "{CE60C8C6-3F04-447B-946C-D22397E39EC6}"
-EndProject
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{4E81D71A-8636-49E0-AD21-E845D26D32E9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343} = {E918FCC4-EA5C-4E4C-959E-DB4A8907E343}
@@ -16,16 +16,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Sample.Agent.WinForms", "Genesys.WebServicesClient.Sample.Agent.WinForms\Genesys.WebServicesClient.Sample.Agent.WinForms.csproj", "{C3E75C6A-738E-415D-82AA-BADAED6E6352}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cometd", "..\CometD.NET\cometd.csproj", "{CE60C8C6-3F04-447B-946C-D22397E39EC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.ObservableResource", "Genesys.ObservableResource\Genesys.ObservableResource.csproj", "{F8B3E095-A866-46CF-9EB3-45DE1347A40D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Components.Test", "Genesys.WebServicesClient.Components.Test\Genesys.WebServicesClient.Components.Test.csproj", "{15CCDB7F-0136-4D53-8362-C4FC9619E510}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -46,6 +48,18 @@ Global
 		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3E75C6A-738E-415D-82AA-BADAED6E6352}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

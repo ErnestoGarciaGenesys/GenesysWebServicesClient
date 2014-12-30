@@ -29,12 +29,18 @@ namespace Genesys.WebServicesClient
             this.jsonContent = jsonContent;
         }
 
+        public Task<IGenesysResponse<GenesysTypedResponseBase>> SendAsync()
+        {
+            return SendAsync<GenesysTypedResponseBase>();
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         /// <exception cref="TimeoutException"><see cref="HttpClient.Timeout"/></exception>
-        public async Task<string> SendAsync()
+        public async Task<IGenesysResponse<T>> SendAsync<T>()
+            where T : GenesysTypedResponseBase
         {
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), uri);
             if (jsonContent != null)
@@ -48,7 +54,7 @@ namespace Genesys.WebServicesClient
             {
                 throw new TimeoutException();
             }
-            return await GetResponse(response);
+            return await GetResponse<T>(response);
         }
 
         StringContent CreateJsonContent(object contentObject)
@@ -58,11 +64,12 @@ namespace Genesys.WebServicesClient
             return new StringContent(contentString, Encoding.UTF8, "application/json");
         }
 
-        async Task<string> GetResponse(HttpResponseMessage httpResponse)
+        async Task<IGenesysResponse<T>> GetResponse<T>(HttpResponseMessage httpResponse)
+            where T : GenesysTypedResponseBase
         {
             try
             {
-                var result = await CheckResponseContent(httpResponse);
+                var result = await CheckResponseContent<T>(httpResponse);
                 httpResponse.EnsureSuccessStatusCode();
                 return result;
             }
@@ -74,31 +81,44 @@ namespace Genesys.WebServicesClient
             }
         }
 
-        async Task<string> CheckResponseContent(HttpResponseMessage httpResponse)
+        class GenesysResponse<T> : IGenesysResponse<T>
+            where T : GenesysTypedResponseBase
+        {
+            public string AsString { get; internal set; }
+            public IDictionary<string, object> AsDictionary { get; internal set; }
+            public T AsType { get; internal set; }
+        }
+
+        async Task<IGenesysResponse<T>> CheckResponseContent<T>(HttpResponseMessage httpResponse)
+            where T : GenesysTypedResponseBase
         {
             var responseContent = httpResponse.Content;
             if (responseContent == null)
                 throw new InvalidGenesysResponseException("No content");
 
-            string responseContentStr;
+            string responseAsString;
             try
             {
-                responseContentStr = await responseContent.ReadAsStringAsync();
+                responseAsString = await responseContent.ReadAsStringAsync();
             }
             catch (InvalidOperationException e) // thrown for instance when CharSet is not a supported .NET Encoding
             {
                 throw new InvalidGenesysResponseException("Unreadable content", e);
             }
 
-            Trace.WriteLine("POST response content: " + responseContentStr);
+            Trace.WriteLine("POST response content: " + responseAsString);
 
             if (httpResponse.Content.Headers.ContentType.MediaType != "application/json")
                 throw new InvalidGenesysResponseException("Content-Type of is not application/json");
 
-            GenesysJsonResponse response;
+            IDictionary<string, object> responseAsDictionary;
+            T responseAsType;
             try
             {
-                response = JsonSerializer.Deserialize<GenesysJsonResponse>(responseContentStr);
+                responseAsDictionary = JsonSerializer.DeserializeObject(responseAsString) as IDictionary<string, object>;
+                if (responseAsDictionary == null)
+                    throw new InvalidGenesysResponseException("Invalid JSON type. Corresponding .NET type is " + responseAsDictionary.GetType().Name);
+                responseAsType = JsonSerializer.ConvertToType<T>(responseAsDictionary);
             }
             catch (ArgumentException e)
             {
@@ -109,25 +129,23 @@ namespace Genesys.WebServicesClient
                 throw new InvalidGenesysResponseException("Invalid JSON", e);
             }
 
-            if (!response.statusCode.HasValue)
+            if (!responseAsType.statusCode.HasValue)
                 throw new InvalidGenesysResponseException("Missing statusCode");
 
-            if (response.statusCode.Value != 0)
+            if (responseAsType.statusCode.Value != 0)
                 throw new GenesysMethodException(
                     httpResponse.StatusCode,
-                    response.statusCode.Value,
-                    response.statusMessage);
+                    responseAsType.statusCode.Value,
+                    responseAsType.statusMessage);
 
-            return responseContentStr;
+            var result = new GenesysResponse<T>();
+
+            return new GenesysResponse<T>()
+            {
+                AsString = responseAsString,
+                AsDictionary = responseAsDictionary,
+                AsType = responseAsType
+            };
         }
-
-        class GenesysJsonResponse
-        {
-#pragma warning disable 0649 // CS0649: Field 'field' is never assigned to, and will always have its default value
-            public int? statusCode;
-            public string statusMessage;
-#pragma warning restore 0649
-        };
-
     }
 }
