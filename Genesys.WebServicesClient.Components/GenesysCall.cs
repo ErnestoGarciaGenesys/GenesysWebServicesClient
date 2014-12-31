@@ -12,7 +12,6 @@ namespace Genesys.WebServicesClient.Components
     {
         readonly GenesysCallManager callManager;
         readonly CallUserData userData;
-        readonly IList<CallOperation> operations = new List<CallOperation>();
 
         public string Id { get; private set; }
         public string State { get; private set; }
@@ -22,37 +21,6 @@ namespace Genesys.WebServicesClient.Components
 
         public CallUserData UserData { get { return userData; } }
 
-        class CallOperation : NotifyPropertyChangedSupport, IOperation
-        {
-            readonly GenesysCall call;
-            readonly string operationName;
-
-            public bool IsCapable { get; private set; }
-
-            public CallOperation(GenesysCall call, string operationName)
-            {
-                this.call = call;
-                this.operationName = operationName;
-                call.operations.Add(this);
-            }
-
-            public void Do()
-            {
-                call.callManager.User.Connection.Client.CreateRequest(
-                    "POST", "/api/v2/me/calls/" + call.Id,
-                    new { operationName = operationName })
-                        .SendAsync();
-            }
-
-            internal void HandleEvent(IList<string> capabilities)
-            {
-                ChangeAndNotifyProperty("IsCapable", capabilities.Contains(operationName));
-            }
-        }
-
-        public IOperation AnswerOperation { get; private set; }
-        public IOperation HangupOperation { get; private set; }
-
         public GenesysCall(GenesysCallManager callManager, CallResource callResource)
         {
             this.callManager = callManager;
@@ -60,10 +28,17 @@ namespace Genesys.WebServicesClient.Components
             State = callResource.state;
             SetCapabilities(callResource.capabilities);
             userData = new CallUserData(callResource);
-            AnswerOperation = new CallOperation(this, "Answer");
-            HangupOperation = new CallOperation(this, "Hangup");
-            foreach (var op in operations)
-                op.HandleEvent(callResource.capabilities);
+            UpdateCapableProperties(callResource.capabilities);
+        }
+
+        public bool Finished
+        {
+            get { return State == "Released"; }
+        }
+
+        public IReadOnlyCollection<string> Capabilities
+        {
+            get { return readOnlyCapabilities; }
         }
 
         void SetCapabilities(IList<string> value)
@@ -82,20 +57,39 @@ namespace Genesys.WebServicesClient.Components
             {
                 ChangeAndNotifyProperty("State", callResource.state);
                 SetCapabilities(callResource.capabilities);
-                foreach (var op in operations)
-                    op.HandleEvent(callResource.capabilities);
+                UpdateCapableProperties(callResource.capabilities);
                 RaisePropertyChanged("Capabilities");
             }
         }
-        
-        public bool Finished
+
+        void DoCallOperation(string operationName)
         {
-            get { return State == "Released"; }
+            callManager.User.Connection.Client.CreateRequest(
+                "POST", "/api/v2/me/calls/" + Id,
+                new { operationName = operationName }
+            ).SendAsync();
         }
 
-        public IReadOnlyCollection<string> Capabilities
+        void UpdateCapableProperties(IList<string> capabilities)
         {
-            get { return readOnlyCapabilities; }
+            foreach (var op in callOperations)
+                ChangeAndNotifyProperty(op + "Capable", capabilities.Contains(op));
         }
+
+        readonly string[] callOperations = { "Answer", "Hangup" };
+
+        public void Answer()
+        {
+            DoCallOperation("Answer");
+        }
+
+        public bool AnswerCapable { get; private set; }
+
+        public void Hangup()
+        {
+            DoCallOperation("Hangup");
+        }
+
+        public bool HangupCapable { get; private set; }
     }
 }

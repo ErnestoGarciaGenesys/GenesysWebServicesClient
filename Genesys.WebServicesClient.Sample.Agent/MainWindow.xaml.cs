@@ -71,13 +71,13 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                     User = genesysAgent,
                 };
 
-            genesysAgent.UserResourceUpdated += data =>
-                {
-                    userResource.Update((IDictionary<string, object>)data["user"]);
-                    genesysResourceManager.UpdateResource("Agent", (IDictionary<string, object>)data["user"]);
-                };
+            //genesysAgent.UserResourceUpdated += data =>
+            //    {
+            //        userResource.Update((IDictionary<string, object>)data["user"]);
+            //        genesysResourceManager.UpdateResource("Agent", (IDictionary<string, object>)data["user"]);
+            //    };
 
-            genesysAgent.EventHandlingFinished += e =>
+            genesysAgent.ResourceUpdated += e =>
                 {
                     UpdateUserDataGrid();
                 };

@@ -11,32 +11,34 @@ namespace Genesys.WebServicesClient.Components
 {
     public class GenesysCallManager : NotifyPropertyChangedComponent
     {
-        GenesysUser user;
-
         readonly BindingList<GenesysCall> calls = new BindingList<GenesysCall>();
         public BindingList<GenesysCall> Calls { get { return calls; } }
 
+        [Category("Activation")]
+        public GenesysUser User
+        {
+            get { return (GenesysUser)parentComponent; }
+            set { parentComponent = value; }
+        }
+
         protected override void ActivateImpl()
         {
-            User.CallManager = this;
+            User.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
+            User.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
         }
 
         protected override void DeactivateImpl()
         {
-            User.CallManager = null;
+            User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
+            User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
         }
 
-        public GenesysUser User
+        void User_ResourceUpdatedInternal(UserResource user)
         {
-            get { return user; }
-            set
-            {
-                user = value;
-                parentComponent = value;
-            }
+            // TODO
         }
 
-        internal void HandleEvent(GenesysEvent e)
+        void User_GenesysEventReceivedInternal(GenesysEvent e)
         {
             if (e.MessageType == "CallStateChangeMessage")
             {
@@ -79,15 +81,12 @@ namespace Genesys.WebServicesClient.Components
 
         public void Answer()
         {
-            if (Calls.Count > 0)
-            {
-                User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Calls[0].Id, new { operationName = "Answer" }).SendAsync();
-            }
+            ActiveCall.Answer();
         }
 
         public bool AnswerCapable
         {
-            get { return Calls.Count > 0 && Calls[0].Capabilities.Contains("Answer"); }
+            get { return ActiveCall.AnswerCapable;  }
         }
 
         public void Hangup()

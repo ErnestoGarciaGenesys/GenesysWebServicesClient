@@ -24,7 +24,7 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler ActiveChanged;
 
-        [DefaultValue(true)]
+        [DefaultValue(true), Category("Activation")]
         public virtual bool AutoActivate
         {
             get { return autoActivate; }
@@ -81,7 +81,7 @@ namespace Genesys.WebServicesClient.Components
                 return;
 
             DeactivateImpl();
-
+            
             Active = false;
             RaiseActiveChanged();
         }

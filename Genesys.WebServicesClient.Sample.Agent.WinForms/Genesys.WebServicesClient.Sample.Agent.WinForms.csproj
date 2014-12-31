@@ -89,6 +89,10 @@
       <Project>{e0e4d679-73a4-4fe8-b387-a3252841c1b3}</Project>
       <Name>Genesys.WebServicesClient.Components</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Genesys.WebServicesClient\Genesys.WebServicesClient.csproj">
+      <Project>{e918fcc4-ea5c-4e4c-959e-db4a8907e343}</Project>
+      <Name>Genesys.WebServicesClient</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

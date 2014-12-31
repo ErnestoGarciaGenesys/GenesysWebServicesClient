@@ -7,6 +7,7 @@ namespace Genesys.WebServicesClient.Resources
 {
     public class DeviceResource
     {
+        public string id;
         public UserState userState;
     }
 }

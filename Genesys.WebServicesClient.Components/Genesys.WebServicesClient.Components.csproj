@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="CallUserData.cs" />
     <Compile Include="DisposableComponent.cs" />
+    <Compile Include="GenesysDevice.cs" />
     <Compile Include="GenesysResource.cs" />
     <Compile Include="GenesysResourceManager.cs" />
     <Compile Include="GenesysResourceOld.cs" />

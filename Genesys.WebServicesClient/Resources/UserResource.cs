@@ -7,7 +7,7 @@ namespace Genesys.WebServicesClient.Resources
 {
     public class UserResource
     {
-        public IEnumerable<DeviceResource> devices;
+        public IReadOnlyList<DeviceResource> devices;
     }
 }
 

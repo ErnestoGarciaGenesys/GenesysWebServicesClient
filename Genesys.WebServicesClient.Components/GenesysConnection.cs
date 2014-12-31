@@ -10,6 +10,7 @@ namespace Genesys.WebServicesClient.Components
     public class GenesysConnection : ActiveComponent
     {
         GenesysClient client;
+        GenesysEventReceiver eventReceiver;
 
         [Category("Connection")]
         public string ServerUri { get; set; }
@@ -55,10 +56,16 @@ namespace Genesys.WebServicesClient.Components
                 Password = Password
             }
             .Create();
+
+            eventReceiver = client.CreateEventReceiver();
+            eventReceiver.Open();
         }
 
         protected override void DeactivateImpl()
         {
+            eventReceiver.Dispose();
+            eventReceiver = null;
+
             client.Dispose();
             client = null;
         }
@@ -66,6 +73,11 @@ namespace Genesys.WebServicesClient.Components
         internal GenesysClient Client
         {
             get { return client; }
+        }
+
+        internal GenesysEventReceiver EventReceiver
+        {
+            get { return eventReceiver; }
         }
     }
 }

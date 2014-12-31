@@ -14,6 +14,7 @@ namespace Tests
 #pragma warning disable 0649 // CS0649: Field 'field' is never assigned to, and will always have its default value
             public string key;
             public IList<string> list;
+            public string readonlyProp { get; internal set; }
 #pragma warning restore 0649
         }
 
@@ -33,8 +34,8 @@ namespace Tests
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             object result = serializer.DeserializeObject(@"[""value1"", ""value2""]");
             Assert.IsInstanceOfType(result, typeof(object[]));
-            var typedResult = serializer.ConvertToType<IList<string>>(result);
-            Assert.IsInstanceOfType(typedResult, typeof(IList<string>));
+            var typedResult = serializer.ConvertToType<IReadOnlyList<string>>(result);
+            Assert.IsInstanceOfType(typedResult, typeof(IReadOnlyList<string>));
         }
 
         [TestMethod]
@@ -43,6 +44,14 @@ namespace Tests
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             var result = serializer.Deserialize<SerializationResult>(@"{ ""list"" : [""value1"", ""value2""] }");
             Assert.IsInstanceOfType(result.list, typeof(IList<string>));
+        }
+
+        [TestMethod]
+        public void serializing_to_internal_property()
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            var result = serializer.Deserialize<SerializationResult>(@"{ ""readonlyProp"" : ""value"" }");
+            Assert.IsNull(result.readonlyProp);
         }
 
         class FirstMediaEmail { public void Ready() {} }

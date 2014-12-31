@@ -28,18 +28,23 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             //  A no ser que se use un BindingSource
             // - Windows Forms no admite binding con objetos dinámicos (IDynamicMetaObjectProvider, ExpandoObject...)
 
-            CreateBinding(stateLabel, "Text", genesysUser, "State");
+            CreateBinding(deviceStateLabel, "Text", genesysDevice, "UserState.State");
+            CreateBinding(deviceStateDisplayLabel, "Text", genesysDevice, "UserState.DisplayName");
+
             callsDataGrid.DataSource = genesysCallManager.Calls;
 
             CreateBinding(activeCallIdLabel, "Text", genesysCallManager, "ActiveCall.Id");
-            CreateBinding(answerButton, "Enabled", genesysCallManager, "ActiveCall.AnswerOperation.IsCapable");
-            CreateBinding(hangupButton, "Enabled", genesysCallManager, "ActiveCall.HangupOperation.IsCapable");
+            CreateBinding(activeCallStateLabel, "Text", genesysCallManager, "ActiveCall.State");
+
+            CreateBinding(answerButton, "Enabled", genesysCallManager, "ActiveCall.AnswerCapable");
+            CreateBinding(hangupButton, "Enabled", genesysCallManager, "ActiveCall.HangupCapable");
 
             CreateBinding(initiateTransferButton, "Enabled", genesysCallManager, "InitiateTransferCapable");
             CreateBinding(completeTransferButton, "Enabled", genesysCallManager, "CompleteTransferCapable");
 
+            genesysUser.ResourceUpdated += (s, e) => UpdateUserDataGrid();
+
             genesysConnection.ActiveChanged += (s, e) => RefreshConnectionComponents();
-            genesysConnection.Disposed += (s, e) => RefreshConnectionComponents();
             RefreshConnectionComponents();
         }
 
@@ -82,6 +87,16 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             disconnectButton.Enabled = genesysConnection.Active;
         }
 
+        void UpdateUserDataGrid()
+        {
+            if (genesysCallManager.ActiveCall != null)
+            {
+                userDataGrid.SelectedObject = null;
+                userDataGrid.SelectedObject = genesysCallManager.ActiveCall.UserData;
+                userDataGrid.Refresh();
+            }
+        }
+
         void connectButton_Click(object sender, EventArgs e)
         {
             genesysConnection.Username = usernameTextBox.Text;
@@ -96,22 +111,22 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
         async void readyButton_Click(object sender, EventArgs e)
         {
-            await genesysUser.MakeReady();
+            await genesysUser.ChangeState("Ready");
         }
 
         async void notReadyButton_Click(object sender, EventArgs e)
         {
-            await genesysUser.MakeNotReady();
+            await genesysUser.ChangeState("NotReady");
         }
 
         void answerButton_Click(object sender, EventArgs e)
         {
-            genesysCallManager.ActiveCall.AnswerOperation.Do();
+            genesysCallManager.ActiveCall.Answer();
         }
 
         void hangupButton_Click(object sender, EventArgs e)
         {
-            genesysCallManager.Hangup();
+            genesysCallManager.ActiveCall.Hangup();
         }
 
         void initiateTransferButton_Click(object sender, EventArgs e)

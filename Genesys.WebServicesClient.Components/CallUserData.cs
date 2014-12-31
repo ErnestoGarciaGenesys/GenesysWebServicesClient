@@ -170,7 +170,5 @@ namespace Genesys.WebServicesClient.Components
 
             return false;
         }
-
-        public string TestProperty { get { return "testing..."; } }
     }
 }
