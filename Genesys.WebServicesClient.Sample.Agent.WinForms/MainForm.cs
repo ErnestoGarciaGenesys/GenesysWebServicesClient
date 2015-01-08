@@ -18,65 +18,23 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
         {
             InitializeComponent();
 
-            Application.ThreadException += (s, e) =>
-                errorsLabel.Text = e.Exception.ToString();
-
-            // Varios problemas:
-            // - Para hacer DataBinding parece que todas las propiedades en el Path deben estar tipadas y estar definidas, al menos
-            //  por medio de un ICustomTypeDescriptor.
-            // - Si una de las propiedades es null, el binding da error al no poder registrar un propDesc.AddValueChanged().
-            //  A no ser que se use un BindingSource
-            // - Windows Forms no admite binding con objetos dinámicos (IDynamicMetaObjectProvider, ExpandoObject...)
-
-            CreateBinding(deviceStateLabel, "Text", genesysDevice, "UserState.State");
-            CreateBinding(deviceStateDisplayLabel, "Text", genesysDevice, "UserState.DisplayName");
+            genesysDevice.BindControl("UserState.State", deviceStateLabel, "Text");
+            genesysDevice.BindControl("UserState.DisplayName", deviceStateDisplayLabel, "Text");
+            genesysCallManager.BindControl("ActiveCall.Id", activeCallIdLabel, "Text");
+            genesysCallManager.BindControl("ActiveCall.State", activeCallStateLabel, "Text");
+            genesysCallManager.BindControl("ActiveCall.AnswerCapable", answerButton, "Enabled");
+            genesysCallManager.BindControl("ActiveCall.HangupCapable", hangupButton, "Enabled");
+            genesysCallManager.BindControl("ActiveCall.InitiateTransferCapable", initiateTransferButton, "Enabled");
+            genesysCallManager.BindControl("ActiveCall.CompleteTransferCapable", completeTransferButton, "Enabled");
+            genesysCallManager.BindControl("ActiveCall.UpdateUserDataCapable", updateUserDataButton, "Enabled");
 
             callsDataGrid.DataSource = genesysCallManager.Calls;
-
-            CreateBinding(activeCallIdLabel, "Text", genesysCallManager, "ActiveCall.Id");
-            CreateBinding(activeCallStateLabel, "Text", genesysCallManager, "ActiveCall.State");
-
-            CreateBinding(answerButton, "Enabled", genesysCallManager, "ActiveCall.AnswerCapable");
-            CreateBinding(hangupButton, "Enabled", genesysCallManager, "ActiveCall.HangupCapable");
-
-            CreateBinding(initiateTransferButton, "Enabled", genesysCallManager, "InitiateTransferCapable");
-            CreateBinding(completeTransferButton, "Enabled", genesysCallManager, "CompleteTransferCapable");
-
             genesysUser.ResourceUpdated += (s, e) => UpdateUserDataGrid();
 
             genesysConnection.ActiveChanged += (s, e) => RefreshConnectionComponents();
             RefreshConnectionComponents();
-        }
 
-        Binding CreateBinding(Control control, string propertyName, object dataSource, string dataMember)
-        {
-            bool isPath = dataMember.Contains('.');
-            if (isPath)
-            {
-                // A plain Binding will not work with null values in the path, so wrap the dataSource in a BindingSource,
-                // which will take care of null values appropriately.
-                // Notice that the BindingSource only wraps the dataSource, not the dataMember.
-                var bindingSource = new BindingSource();
-                bindingSource.DataSource = dataSource;
-                dataSource = bindingSource;
-            }
-
-            var binding = control.DataBindings.Add(propertyName, dataSource, dataMember,
-                formattingEnabled: true, 
-                updateMode: DataSourceUpdateMode.OnPropertyChanged);
-
-            binding.BindingComplete += (s, e) =>
-                {
-                    if (e.BindingCompleteState != BindingCompleteState.Success)
-                        Console.WriteLine(e.ErrorText);
-                };
-            
-            if (isPath)
-                // The BindingSource does not do an initial update if one of the DataMember properties in its path is null,
-                // that is why an initial update is requested explicitely here.
-                binding.ReadValue();
-            
-            return binding;
+            genesysUser.ResourceUpdated += (s, e) => ObtainOption();
         }
 
         void RefreshConnectionComponents()
@@ -95,6 +53,24 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
                 userDataGrid.SelectedObject = genesysCallManager.ActiveCall.UserData;
                 userDataGrid.Refresh();
             }
+        }
+
+        void ObtainOption()
+        {
+            IDictionary<string, object> section;
+            if (genesysUser.Settings.TryGetValue("interaction-workspace", out section))
+            {
+                object result;
+                if (section.TryGetValue("voice.mark-done-on-release", out result))
+                {
+                    optionLabel.Text = result.ToString();
+                }
+            }
+        }
+
+        public void DisplayError(string error)
+        {
+            errorsLabel.Text = error;
         }
 
         void connectButton_Click(object sender, EventArgs e)
@@ -131,12 +107,19 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
         void initiateTransferButton_Click(object sender, EventArgs e)
         {
-            genesysCallManager.InitiateTransfer(phoneNumberTextBox.Text);
+            genesysCallManager.ActiveCall.InitiateTransfer(phoneNumberTextBox.Text);
         }
 
         void completeTransferButton_Click(object sender, EventArgs e)
         {
-            genesysCallManager.CompleteTransfer();
+            genesysCallManager.ActiveCall.CompleteTransfer();
+        }
+
+        void updateUserDataButton_Click(object sender, EventArgs e)
+        {
+            genesysCallManager.ActiveCall.UpdateUserData(new Dictionary<string, object> {
+                { userDataKeyTextBox.Text, userDataValueTextBox.Text }
+            });
         }
     }
 }

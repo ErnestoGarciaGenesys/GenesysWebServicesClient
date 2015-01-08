@@ -7,12 +7,8 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public abstract class ActiveComponent : DisposableComponent, ISupportInitialize
+    public abstract class ActiveComponent : DisposableComponent
     {
-        bool autoActivate = true;
-        
-        protected ActiveComponent parentComponent;
-        
         protected bool isParent = false;
 
         [Browsable(false)]
@@ -24,6 +20,28 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler ActiveChanged;
 
+        ActiveComponent parentComponent;
+
+        protected ActiveComponent ParentComponent
+        {
+            get { return parentComponent; }
+            set
+            {
+                parentComponent = value;
+
+                if (parentComponent == null)
+                    parentComponent.ActiveChanged -= parentComponent_ActiveChanged;
+                else
+                    parentComponent.ActiveChanged += parentComponent_ActiveChanged;
+            }
+        }
+
+        bool autoActivate = true;
+
+        /// <summary>
+        /// If set to true, this component will be activated automatically right after its parent is activated.
+        /// in that case there is no need to call <see cref="Activate()"/> on this component.
+        /// </summary>
         [DefaultValue(true), Category("Activation")]
         public virtual bool AutoActivate
         {
@@ -31,40 +49,27 @@ namespace Genesys.WebServicesClient.Components
             set { autoActivate = value; }
         }
 
-        void ISupportInitialize.BeginInit() { }
-
-        void ISupportInitialize.EndInit()
-        {
-            if (!isParent && parentComponent != null)
-            {
-                parentComponent.ActiveChanged += parentComponent_ActiveChanged;
-
-                if (autoActivate && parentComponent.Active)
-                    Activate();
-            }
-        }
-
         void parentComponent_ActiveChanged(object sender, EventArgs e)
         {
             if (parentComponent.Active)
             {
-                if (autoActivate)
+                if (AutoActivate)
                     Activate();
             }
             else
             {
-                if (autoActivate)
+                if (AutoActivate)
                     Deactivate();
             }
         }
 
         public void Activate()
         {
-            if (!isParent && parentComponent == null)
-                throw new InvalidOperationException("parent component not set");
-
             if (Active)
                 return;
+
+            if (!isParent && parentComponent == null)
+                throw new InvalidOperationException("parent component not set");
 
             if (!isParent)
                 parentComponent.Activate();

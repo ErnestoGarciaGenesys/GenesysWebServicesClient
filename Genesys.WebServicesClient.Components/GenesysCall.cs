@@ -62,12 +62,14 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
+        void DoCallOperation(object parameters)
+        {
+            callManager.User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Id, parameters).SendAsync();
+        }
+
         void DoCallOperation(string operationName)
         {
-            callManager.User.Connection.Client.CreateRequest(
-                "POST", "/api/v2/me/calls/" + Id,
-                new { operationName = operationName }
-            ).SendAsync();
+            DoCallOperation(new { operationName = operationName });
         }
 
         void UpdateCapableProperties(IList<string> capabilities)
@@ -76,20 +78,44 @@ namespace Genesys.WebServicesClient.Components
                 ChangeAndNotifyProperty(op + "Capable", capabilities.Contains(op));
         }
 
-        readonly string[] callOperations = { "Answer", "Hangup" };
-
-        public void Answer()
+        readonly string[] callOperations =
         {
-            DoCallOperation("Answer");
-        }
+            "Answer",
+            "Hangup",
+            "InitiateTransfer",
+            "CompleteTransfer",
+            "UpdateUserData",
+        };
 
+        public void Answer() { DoCallOperation("Answer"); }
         public bool AnswerCapable { get; private set; }
 
-        public void Hangup()
+        public void Hangup() { DoCallOperation("Hangup"); }
+        public bool HangupCapable { get; private set; }
+
+        public void InitiateTransfer(string phoneNumber)
         {
-            DoCallOperation("Hangup");
+            DoCallOperation(new
+                {
+                    operationName = "InitiateTransfer",
+                    destination = new { phoneNumber = phoneNumber }
+                });
         }
 
-        public bool HangupCapable { get; private set; }
+        public bool InitiateTransferCapable { get; private set; }
+
+        public void CompleteTransfer() { DoCallOperation("CompleteTransfer"); }
+        public bool CompleteTransferCapable { get; private set; }
+
+        public void UpdateUserData(object obj)
+        {
+            DoCallOperation(new
+            {
+                operationName = "UpdateUserData",
+                userData = obj
+            });
+        }
+
+        public bool UpdateUserDataCapable { get; private set; }
     }
 }

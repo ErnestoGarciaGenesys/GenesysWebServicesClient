@@ -40,5 +40,15 @@ namespace Genesys.WebServicesClient
             object resource = Data[resourceKey];
             return JsonParser.ConvertToType<T>(resource);
         }
+
+        public T GetResourceAsTypeOrNull<T>(string resourceKey)
+            where T : class
+        {
+            object resource;
+            if (Data.TryGetValue(resourceKey, out resource))
+                return JsonParser.ConvertToType<T>(resource);
+            else
+                return null;
+        }
     }
 }

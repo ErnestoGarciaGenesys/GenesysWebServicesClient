@@ -17,8 +17,8 @@ namespace Genesys.WebServicesClient.Components
         [Category("Activation")]
         public GenesysUser User
         {
-            get { return (GenesysUser)parentComponent; }
-            set { parentComponent = value; }
+            get { return (GenesysUser)ParentComponent; }
+            set { ParentComponent = value; }
         }
 
         protected override void ActivateImpl()
@@ -79,59 +79,5 @@ namespace Genesys.WebServicesClient.Components
 
         public GenesysCall ActiveCall { get { return calls.FirstOrDefault(); } }
 
-        public void Answer()
-        {
-            ActiveCall.Answer();
-        }
-
-        public bool AnswerCapable
-        {
-            get { return ActiveCall.AnswerCapable;  }
-        }
-
-        public void Hangup()
-        {
-            if (Calls.Count > 0)
-            {
-                User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Calls[0].Id, new { operationName = "Hangup" }).SendAsync();
-            }
-        }
-
-        public bool HangupCapable
-        {
-            get { return Calls.Count > 0 && Calls[0].Capabilities.Contains("Hangup"); }
-        }
-
-        public void InitiateTransfer(string phoneNumber)
-        {
-            if (Calls.Count > 0)
-            {
-                User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Calls[0].Id,
-                    new
-                    {
-                        operationName = "InitiateTransfer",
-                        destination = new { phoneNumber = phoneNumber }
-                    }
-                ).SendAsync();
-            }
-        }
-
-        public bool InitiateTransferCapable
-        {
-            get { return Calls.Count > 0 && Calls[0].Capabilities.Contains("InitiateTransfer"); }
-        }
-
-        public void CompleteTransfer()
-        {
-            if (Calls.Count > 0)
-            {
-                User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Calls[0].Id, new { operationName = "CompleteTransfer" }).SendAsync();
-            }
-        }
-
-        public bool CompleteTransferCapable
-        {
-            get { return Calls.Count > 0 && Calls[0].Capabilities.Contains("CompleteTransfer"); }
-        }
     }
 }

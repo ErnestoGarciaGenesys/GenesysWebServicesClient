@@ -24,6 +24,9 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
         static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
             Console.WriteLine("Exception raised: {0}\n{1}", e.Exception, e.Exception.StackTrace);
+            
+            if (!mainForm.IsDisposed)
+                mainForm.DisplayError(e.Exception.ToString());
         }
     }
 }

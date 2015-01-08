@@ -77,7 +77,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             //        genesysResourceManager.UpdateResource("Agent", (IDictionary<string, object>)data["user"]);
             //    };
 
-            genesysAgent.ResourceUpdated += e =>
+            genesysAgent.ResourceUpdated += (s, e) =>
                 {
                     UpdateUserDataGrid();
                 };
@@ -108,12 +108,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
         void readyButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysAgent.MakeReady();
+            genesysAgent.ChangeState("NotReady");
         }
 
         void notReadyButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysAgent.MakeNotReady();
+            genesysAgent.ChangeState("Ready");
         }
 
         void Window_Loaded(object sender, RoutedEventArgs e)
@@ -126,12 +126,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
         void answerButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.AnswerOperation.Do();
+            genesysCallManager.ActiveCall.Answer();
         }
 
         void hangupButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.HangupOperation.Do();
+            genesysCallManager.ActiveCall.Hangup();
         }
 
         void addPropertyButton_Click(object sender, RoutedEventArgs e)

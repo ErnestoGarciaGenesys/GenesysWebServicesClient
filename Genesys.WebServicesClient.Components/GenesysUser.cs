@@ -14,8 +14,8 @@ namespace Genesys.WebServicesClient.Components
         [Category("Activation")]
         public GenesysConnection Connection
         {
-            get { return (GenesysConnection)parentComponent; }
-            set { this.parentComponent = value; }
+            get { return (GenesysConnection)ParentComponent; }
+            set { this.ParentComponent = value; }
         }
 
         IEventSubscription eventSubscription;
@@ -23,7 +23,7 @@ namespace Genesys.WebServicesClient.Components
         protected override void ActivateImpl()
         {
             eventSubscription = Connection.EventReceiver.SubscribeAll(HandleEvent);
-            RefreshAgent();
+            RefreshAgentAsync();
         }
 
         protected override void DeactivateImpl()
@@ -43,16 +43,20 @@ namespace Genesys.WebServicesClient.Components
 
         void HandleEvent(object sender, GenesysEvent e)
         {
+            var user = e.GetResourceAsTypeOrNull<IDictionary<string, object>>("user");
+
             if (GenesysEventReceivedInternal != null)
                 GenesysEventReceivedInternal(e);
-
-            RaiseResourceUpdated();
         }
 
-        async void RefreshAgent()
+        async void RefreshAgentAsync()
         {
             // doc: http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
             var response = await Connection.Client.CreateRequest("GET", "/api/v2/me?subresources=*").SendAsync<UserResourceResponse>();
+
+            var userResource = (IDictionary<string, object>)response.AsDictionary["user"];
+            var untypedSettings = (IDictionary<string, object>)userResource["settings"];
+            Settings = untypedSettings.ToDictionary(kvp => kvp.Key, kvp => (IDictionary<string, object>)kvp.Value);
 
             RaiseResourceUpdated();
         }
@@ -63,5 +67,7 @@ namespace Genesys.WebServicesClient.Components
             if (ResourceUpdated != null)
                 ResourceUpdated(this, EventArgs.Empty);
         }
+        
+        public IDictionary<string, IDictionary<string, object>> Settings { get; private set; }
     }
 }

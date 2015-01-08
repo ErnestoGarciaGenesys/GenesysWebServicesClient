@@ -54,6 +54,7 @@
     <Compile Include="GenesysCall.cs" />
     <Compile Include="GenesysCallManager.cs" />
     <Compile Include="ActiveComponent.cs" />
+    <Compile Include="GenesysWindowsFormsUtil.cs" />
     <Compile Include="IOperation.cs" />
     <Compile Include="NotifyPropertyChangedComponent.cs" />
     <Compile Include="GenesysConnection.cs" />
@@ -69,6 +70,7 @@
       <Name>Genesys.WebServicesClient</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

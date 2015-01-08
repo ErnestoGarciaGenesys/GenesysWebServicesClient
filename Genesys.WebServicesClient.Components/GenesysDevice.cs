@@ -13,8 +13,8 @@ namespace Genesys.WebServicesClient.Components
         [Category("Activation")]
         public GenesysUser User
         {
-            get { return (GenesysUser)parentComponent; }
-            set { parentComponent = value; }
+            get { return (GenesysUser)ParentComponent; }
+            set { ParentComponent = value; }
         }
 
         int deviceIndex = 0;
@@ -82,6 +82,9 @@ namespace Genesys.WebServicesClient.Components
         }
 
         // [Browsable(false)], needs to be Browsable for enabling data binding to its properties.
+        [Bindable(BindableSupport.Yes),
+        ReadOnly(true),
+        CategoryAttribute("Read-only")]
         public UserState UserState
         {
             get;

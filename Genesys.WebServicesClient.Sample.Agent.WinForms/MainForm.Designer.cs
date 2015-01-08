@@ -49,20 +49,20 @@
             this.userGroupBox = new System.Windows.Forms.GroupBox();
             this.deviceGroupBox = new System.Windows.Forms.GroupBox();
             this.connectionGroupBox = new System.Windows.Forms.GroupBox();
+            this.callsGroupBox = new System.Windows.Forms.GroupBox();
+            this.userDataValueTextBox = new System.Windows.Forms.TextBox();
+            this.updateUserDataButton = new System.Windows.Forms.Button();
+            this.userDataKeyTextBox = new System.Windows.Forms.TextBox();
+            this.userDataGrid = new System.Windows.Forms.PropertyGrid();
+            this.optionLabel = new System.Windows.Forms.Label();
             this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
             this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
             this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysCallManager();
             this.genesysDevice = new Genesys.WebServicesClient.Components.GenesysDevice();
-            this.callsGroupBox = new System.Windows.Forms.GroupBox();
-            this.userDataGrid = new System.Windows.Forms.PropertyGrid();
             ((System.ComponentModel.ISupportInitialize)(this.callsDataGrid)).BeginInit();
             this.userGroupBox.SuspendLayout();
             this.deviceGroupBox.SuspendLayout();
             this.connectionGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysUser)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysConnection)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysCallManager)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysDevice)).BeginInit();
             this.callsGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -258,6 +258,72 @@
             this.connectionGroupBox.TabStop = false;
             this.connectionGroupBox.Text = "Connection";
             // 
+            // callsGroupBox
+            // 
+            this.callsGroupBox.Controls.Add(this.userDataValueTextBox);
+            this.callsGroupBox.Controls.Add(this.updateUserDataButton);
+            this.callsGroupBox.Controls.Add(this.userDataKeyTextBox);
+            this.callsGroupBox.Controls.Add(this.userDataGrid);
+            this.callsGroupBox.Controls.Add(this.activeCallIdLabel);
+            this.callsGroupBox.Controls.Add(this.phoneNumberTextBox);
+            this.callsGroupBox.Controls.Add(this.completeTransferButton);
+            this.callsGroupBox.Controls.Add(this.initiateTransferButton);
+            this.callsGroupBox.Controls.Add(this.hangupButton);
+            this.callsGroupBox.Controls.Add(this.answerButton);
+            this.callsGroupBox.Controls.Add(this.callsDataGrid);
+            this.callsGroupBox.Controls.Add(this.activeCallStateLabel);
+            this.callsGroupBox.Location = new System.Drawing.Point(161, 12);
+            this.callsGroupBox.Name = "callsGroupBox";
+            this.callsGroupBox.Size = new System.Drawing.Size(519, 331);
+            this.callsGroupBox.TabIndex = 20;
+            this.callsGroupBox.TabStop = false;
+            this.callsGroupBox.Text = "Calls";
+            // 
+            // userDataValueTextBox
+            // 
+            this.userDataValueTextBox.Location = new System.Drawing.Point(262, 56);
+            this.userDataValueTextBox.Name = "userDataValueTextBox";
+            this.userDataValueTextBox.Size = new System.Drawing.Size(92, 20);
+            this.userDataValueTextBox.TabIndex = 15;
+            this.userDataValueTextBox.Text = "value";
+            // 
+            // updateUserDataButton
+            // 
+            this.updateUserDataButton.Location = new System.Drawing.Point(360, 28);
+            this.updateUserDataButton.Name = "updateUserDataButton";
+            this.updateUserDataButton.Size = new System.Drawing.Size(115, 23);
+            this.updateUserDataButton.TabIndex = 14;
+            this.updateUserDataButton.Text = "Update User Data";
+            this.updateUserDataButton.UseVisualStyleBackColor = true;
+            this.updateUserDataButton.Click += new System.EventHandler(this.updateUserDataButton_Click);
+            // 
+            // userDataKeyTextBox
+            // 
+            this.userDataKeyTextBox.Location = new System.Drawing.Point(262, 30);
+            this.userDataKeyTextBox.Name = "userDataKeyTextBox";
+            this.userDataKeyTextBox.Size = new System.Drawing.Size(92, 20);
+            this.userDataKeyTextBox.TabIndex = 12;
+            this.userDataKeyTextBox.Text = "key";
+            // 
+            // userDataGrid
+            // 
+            this.userDataGrid.HelpVisible = false;
+            this.userDataGrid.Location = new System.Drawing.Point(262, 152);
+            this.userDataGrid.Name = "userDataGrid";
+            this.userDataGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
+            this.userDataGrid.Size = new System.Drawing.Size(234, 152);
+            this.userDataGrid.TabIndex = 11;
+            this.userDataGrid.ToolbarVisible = false;
+            // 
+            // optionLabel
+            // 
+            this.optionLabel.AutoSize = true;
+            this.optionLabel.Location = new System.Drawing.Point(18, 316);
+            this.optionLabel.Name = "optionLabel";
+            this.optionLabel.Size = new System.Drawing.Size(94, 13);
+            this.optionLabel.TabIndex = 21;
+            this.optionLabel.Text = "[user option value]";
+            // 
             // genesysUser
             // 
             this.genesysUser.Connection = this.genesysConnection;
@@ -277,37 +343,10 @@
             this.genesysDevice.DeviceIndex = 0;
             this.genesysDevice.User = this.genesysUser;
             // 
-            // callsGroupBox
-            // 
-            this.callsGroupBox.Controls.Add(this.userDataGrid);
-            this.callsGroupBox.Controls.Add(this.activeCallIdLabel);
-            this.callsGroupBox.Controls.Add(this.phoneNumberTextBox);
-            this.callsGroupBox.Controls.Add(this.completeTransferButton);
-            this.callsGroupBox.Controls.Add(this.initiateTransferButton);
-            this.callsGroupBox.Controls.Add(this.hangupButton);
-            this.callsGroupBox.Controls.Add(this.answerButton);
-            this.callsGroupBox.Controls.Add(this.callsDataGrid);
-            this.callsGroupBox.Controls.Add(this.activeCallStateLabel);
-            this.callsGroupBox.Location = new System.Drawing.Point(161, 12);
-            this.callsGroupBox.Name = "callsGroupBox";
-            this.callsGroupBox.Size = new System.Drawing.Size(519, 331);
-            this.callsGroupBox.TabIndex = 20;
-            this.callsGroupBox.TabStop = false;
-            this.callsGroupBox.Text = "Calls";
-            // 
-            // userDataGrid
-            // 
-            this.userDataGrid.HelpVisible = false;
-            this.userDataGrid.Location = new System.Drawing.Point(262, 152);
-            this.userDataGrid.Name = "userDataGrid";
-            this.userDataGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.userDataGrid.Size = new System.Drawing.Size(234, 152);
-            this.userDataGrid.TabIndex = 11;
-            this.userDataGrid.ToolbarVisible = false;
-            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(717, 478);
+            this.Controls.Add(this.optionLabel);
             this.Controls.Add(this.callsGroupBox);
             this.Controls.Add(this.connectionGroupBox);
             this.Controls.Add(this.deviceGroupBox);
@@ -321,10 +360,6 @@
             this.deviceGroupBox.PerformLayout();
             this.connectionGroupBox.ResumeLayout(false);
             this.connectionGroupBox.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysUser)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysConnection)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysCallManager)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.genesysDevice)).EndInit();
             this.callsGroupBox.ResumeLayout(false);
             this.callsGroupBox.PerformLayout();
             this.ResumeLayout(false);
@@ -360,6 +395,10 @@
         private System.Windows.Forms.GroupBox connectionGroupBox;
         private System.Windows.Forms.GroupBox callsGroupBox;
         private System.Windows.Forms.PropertyGrid userDataGrid;
+        private System.Windows.Forms.TextBox userDataValueTextBox;
+        private System.Windows.Forms.Button updateUserDataButton;
+        private System.Windows.Forms.TextBox userDataKeyTextBox;
+        private System.Windows.Forms.Label optionLabel;
     }
 }
 

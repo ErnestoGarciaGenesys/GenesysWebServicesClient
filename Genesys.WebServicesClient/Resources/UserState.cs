@@ -8,8 +8,13 @@ namespace Genesys.WebServicesClient.Resources
 {
     public class UserState
     {
+        [ReadOnly(true)]
         public string Id { get; set; }
+
+        [ReadOnly(true)]
         public string State { get; set; }
+
+        [ReadOnly(true)]
         public string DisplayName { get; set; }
     }
 }
