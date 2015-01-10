@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
+    public enum ConnectionState
+    {
+        Open, Close
+    }
+
     public class GenesysConnection : ActiveComponent
     {
         GenesysClient client;
@@ -18,25 +23,17 @@ namespace Genesys.WebServicesClient.Components
         // Username is spelled altogether (not userName), as in http://docs.genesys.com/Documentation/HTCC/8.5.2/API/GetUserInfo
         [Category("Connection")]
         public string Username { get; set; }
-        
+
         [Category("Connection")]
         public string Password { get; set; }
 
-        // Reimplementing property for giving different attributes and implementation.
-        [ReadOnly(true), Browsable(false), DefaultValue(false)]
-        public override bool AutoActivate
-        {
-            get { return false; }
-            set { }
-        }
+        [Category("Connection"), DefaultValue(5000)]
+        public int OpenTimeoutMs { get; set; }
 
         /// <summary>
         /// When using this constructor, this instance must be disposed explicitly.
         /// </summary>
-        public GenesysConnection()
-        {
-            isParent = true;
-        }
+        public GenesysConnection() { }
 
         /// <summary>
         /// When using this constructor, this instance will be automatically disposed by the parent container.
@@ -47,8 +44,15 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        protected override void ActivateImpl()
+        [ReadOnly(true), Browsable(false)]
+        public ConnectionState ConnectionState { get; private set; }
+
+        internal event EventHandler<EventArgs> ConnectionStateChanged;
+
+        public void Open()
         {
+            Close();
+
             client = new GenesysClient.Setup()
             {
                 ServerUri = ServerUri,
@@ -58,16 +62,44 @@ namespace Genesys.WebServicesClient.Components
             .Create();
 
             eventReceiver = client.CreateEventReceiver();
-            eventReceiver.Open();
+
+            // TODO: do asynchronously in a background thread: Task.Factory.StartNew(..., TaskCreationOptions.LongRunning)?
+            // And convert this method in ConnectAsync, returning a Task.
+            eventReceiver.Open(OpenTimeoutMs);
+
+            ConnectionState = ConnectionState.Open;
+            if (ConnectionStateChanged != null)
+                ConnectionStateChanged(this, EventArgs.Empty);        
         }
 
-        protected override void DeactivateImpl()
+        public void Close()
         {
-            eventReceiver.Dispose();
-            eventReceiver = null;
+            if (eventReceiver != null)
+            {
+                eventReceiver.Dispose();
+                eventReceiver = null;
+            }
 
-            client.Dispose();
-            client = null;
+            if (client != null)
+            {
+                client.Dispose();
+                client = null;
+            }
+
+            if (ConnectionState == ConnectionState.Open)
+            {
+                ConnectionState = ConnectionState.Close;
+                if (ConnectionStateChanged != null)
+                    ConnectionStateChanged(this, EventArgs.Empty);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                Close();
+
+            base.Dispose(disposing);
         }
 
         internal GenesysClient Client

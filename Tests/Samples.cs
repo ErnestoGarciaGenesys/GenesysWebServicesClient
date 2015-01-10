@@ -45,7 +45,7 @@ namespace Tests
                         TestContext.WriteLine("Comet message received: {0}", e);
                     });
 
-                    eventReceiver.Open();
+                    eventReceiver.Open(5000);
 
                     var postResponse = client.CreateRequest("POST", "/api/v2/me", new { operationName = "Ready" }).SendAsync().Result;
                     TestContext.WriteLine("POST response: {0}", postResponse);

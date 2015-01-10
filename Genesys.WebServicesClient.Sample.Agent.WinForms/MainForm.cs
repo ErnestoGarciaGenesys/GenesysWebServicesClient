@@ -31,7 +31,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             callsDataGrid.DataSource = genesysCallManager.Calls;
             genesysUser.ResourceUpdated += (s, e) => UpdateUserDataGrid();
 
-            genesysConnection.ActiveChanged += (s, e) => RefreshConnectionComponents();
+            genesysUser.AvailableChanged += (s, e) => RefreshConnectionComponents();
             RefreshConnectionComponents();
 
             genesysUser.ResourceUpdated += (s, e) => ObtainOption();
@@ -39,10 +39,10 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
         void RefreshConnectionComponents()
         {
-            usernameTextBox.Enabled = !genesysConnection.Active;
-            passwordTextBox.Enabled = !genesysConnection.Active;
-            connectButton.Enabled = !genesysConnection.Active;
-            disconnectButton.Enabled = genesysConnection.Active;
+            usernameTextBox.Enabled = !genesysUser.Available;
+            passwordTextBox.Enabled = !genesysUser.Available;
+            connectButton.Enabled = !genesysUser.Available;
+            disconnectButton.Enabled = genesysUser.Available;
         }
 
         void UpdateUserDataGrid()
@@ -73,11 +73,21 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             errorsLabel.Text = error;
         }
 
-        void connectButton_Click(object sender, EventArgs e)
+        async void connectButton_Click(object sender, EventArgs e)
         {
             genesysConnection.Username = usernameTextBox.Text;
             genesysConnection.Password = passwordTextBox.Text;
-            genesysConnection.Activate();
+
+            try
+            {
+                genesysConnection.Open();
+                await genesysUser.ActivateAsync();
+            }
+            catch (Exception)
+            {
+                genesysConnection.Close();
+                throw;
+            }
         }
 
         void disconnectButton_Click(object sender, EventArgs e)

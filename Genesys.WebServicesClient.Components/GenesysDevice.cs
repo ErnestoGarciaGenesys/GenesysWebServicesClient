@@ -14,7 +14,15 @@ namespace Genesys.WebServicesClient.Components
         public GenesysUser User
         {
             get { return (GenesysUser)ParentComponent; }
-            set { ParentComponent = value; }
+            set
+            {
+                if (ParentComponent != null && ParentComponent != value)
+                    throw new InvalidOperationException("User can only be set once");
+
+                ParentComponent = value;
+                value.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
+                value.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
+            }
         }
 
         int deviceIndex = 0;
@@ -23,23 +31,29 @@ namespace Genesys.WebServicesClient.Components
         public int DeviceIndex
         {
             get { return deviceIndex; }
-            set { deviceIndex = value; }
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("value", value, "DeviceIndex must be nonnegative");
+
+                deviceIndex = value;
+            }
         }
 
         string id;
 
-        protected override void ActivateImpl()
-        {
-            if (deviceIndex < 0)
-                throw new InvalidOperationException("DeviceIndex must be >= 0");
-
-            User.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
-            User.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
-        }
-
-        protected override void DeactivateImpl()
+        protected override void Dispose(bool disposing)
         {
             id = null;
+
+            if (disposing)
+                if (User != null)
+                {
+                    User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
+                    User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
+                }
+
+            base.Dispose(disposing);
         }
 
         void User_GenesysEventReceivedInternal(GenesysEvent e)

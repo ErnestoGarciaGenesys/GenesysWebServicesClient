@@ -9,17 +9,7 @@ namespace Genesys.WebServicesClient.Components
 {
     public abstract class ActiveComponent : DisposableComponent
     {
-        protected bool isParent = false;
-
-        [Browsable(false)]
-        public bool Active
-        {
-            get;
-            private set;
-        }
-
-        public event EventHandler ActiveChanged;
-
+        //protected bool isParent = false;
         ActiveComponent parentComponent;
 
         protected ActiveComponent ParentComponent
@@ -29,84 +19,85 @@ namespace Genesys.WebServicesClient.Components
             {
                 parentComponent = value;
 
-                if (parentComponent == null)
-                    parentComponent.ActiveChanged -= parentComponent_ActiveChanged;
-                else
-                    parentComponent.ActiveChanged += parentComponent_ActiveChanged;
+                //if (parentComponent == null)
+                //    parentComponent.AvailableChanged -= parentComponent_AvailableChanged;
+                //else
+                //    parentComponent.AvailableChanged += parentComponent_AvailableChanged;
             }
         }
 
+        [Obsolete]
         bool autoActivate = true;
 
         /// <summary>
         /// If set to true, this component will be activated automatically right after its parent is activated.
-        /// in that case there is no need to call <see cref="Activate()"/> on this component.
+        /// in that case there is no need to call <see cref="Initialize()"/> on this component.
         /// </summary>
-        [DefaultValue(true), Category("Activation")]
+        [Obsolete, DefaultValue(true), Category("Activation")]
         public virtual bool AutoActivate
         {
             get { return autoActivate; }
             set { autoActivate = value; }
         }
 
-        void parentComponent_ActiveChanged(object sender, EventArgs e)
-        {
-            if (parentComponent.Active)
-            {
-                if (AutoActivate)
-                    Activate();
-            }
-            else
-            {
-                if (AutoActivate)
-                    Deactivate();
-            }
-        }
+        //void parentComponent_AvailableChanged(object sender, EventArgs e)
+        //{
+        //    if (parentComponent.Available)
+        //    {
+        //        if (Started)
+        //            Initialize();
+        //    }
+        //    else
+        //    {
+        //        if (Available)
+        //            Dispose(true);
+        //    }
+        //}
 
-        public void Activate()
-        {
-            if (Active)
-                return;
+        //void Initialize()
+        //{
+        //    if (Available)
+        //        return;
 
-            if (!isParent && parentComponent == null)
-                throw new InvalidOperationException("parent component not set");
+        //    if (!isParent && parentComponent == null)
+        //        throw new InvalidOperationException("parent component not set");
 
-            if (!isParent)
-                parentComponent.Activate();
+        //    if (!isParent)
+        //        parentComponent.Initialize();
 
-            ActivateImpl();
+        //    ActivateImpl();
 
-            Active = true;
-            RaiseActiveChanged();
-        }
+        //    Available = true;
+        //    RaiseActiveChanged();
+        //}
 
-        public void Deactivate()
-        {
-            if (!Active)
-                return;
+        //public void Deactivate()
+        //{
+        //    if (!Available)
+        //        return;
 
-            DeactivateImpl();
+        //    DeactivateImpl();
             
-            Active = false;
-            RaiseActiveChanged();
-        }
+        //    Available = false;
+        //    RaiseActiveChanged();
+        //}
 
-        void RaiseActiveChanged()
-        {
-            if (ActiveChanged != null)
-                ActiveChanged(this, EventArgs.Empty);
-        }
+        //void RaiseActiveChanged()
+        //{
+        //    if (AvailableChanged != null)
+        //        AvailableChanged(this, EventArgs.Empty);
+        //}
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                Deactivate();
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing)
+        //        Deactivate();
 
-            base.Dispose(disposing);
-        }
+        //    base.Dispose(disposing);
+        //}
 
-        protected abstract void ActivateImpl();
+        //protected abstract void ActivateImpl();
 
-        protected abstract void DeactivateImpl();
+        //protected abstract void DeactivateImpl();
     }
 }

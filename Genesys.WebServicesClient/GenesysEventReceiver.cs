@@ -51,12 +51,12 @@ namespace Genesys.WebServicesClient
 
             this.taskFactory = new TaskFactory(taskScheduler);
         }
-
-	    public void Open()
+        
+	    public void Open(int timeoutMs)
         {
             Log.TraceInformation("BayeuxClient handshaking...");
             bayeuxClient.handshake();
-            bayeuxClient.waitFor(5000, new List<BayeuxClient.State>() { BayeuxClient.State.CONNECTED });
+            bayeuxClient.waitFor(timeoutMs, new List<BayeuxClient.State>() { BayeuxClient.State.CONNECTED });
             Log.TraceInformation(bayeuxClient.Connected ? "BayeuxClient connected" : "BayeuxClient not connected");
         }
 

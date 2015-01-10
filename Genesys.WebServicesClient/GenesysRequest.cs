@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
@@ -34,26 +35,27 @@ namespace Genesys.WebServicesClient
             return SendAsync<GenesysTypedResponseBase>();
         }
 
+        public Task<IGenesysResponse<T>> SendAsync<T>()
+            where T : GenesysTypedResponseBase
+        {
+            return SendAsync<T>(CancellationToken.None);
+        }
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="TimeoutException"><see cref="HttpClient.Timeout"/></exception>
-        public async Task<IGenesysResponse<T>> SendAsync<T>()
+        /// <exception cref="OperationCanceledException">On timeout, cancellation or client disposal. See <see cref="HttpClient.Timeout"/></exception>
+        public async Task<IGenesysResponse<T>> SendAsync<T>(CancellationToken cancellationToken)
             where T : GenesysTypedResponseBase
         {
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), uri);
             if (jsonContent != null)
                 request.Content = CreateJsonContent(jsonContent);
             HttpResponseMessage response;
-            try
-            {
-                response = await genesysClient.HttpClient.SendAsync(request);
-            }
-            catch (TaskCanceledException)
-            {
-                throw new TimeoutException();
-            }
+
+            // throws OperationCanceledException on timeout, cancellation or disposal of the HttpClient.
+            response = await genesysClient.HttpClient.SendAsync(request, cancellationToken);
+            
             return await GetResponse<T>(response);
         }
 

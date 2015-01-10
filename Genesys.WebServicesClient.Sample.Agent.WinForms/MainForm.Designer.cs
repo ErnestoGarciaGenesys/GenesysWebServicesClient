@@ -330,6 +330,7 @@
             // 
             // genesysConnection
             // 
+            this.genesysConnection.OpenTimeoutMs = 0;
             this.genesysConnection.Password = "";
             this.genesysConnection.ServerUri = global::Genesys.WebServicesClient.Sample.Agent.WinForms.Properties.Settings.Default.GenesysServerUri;
             this.genesysConnection.Username = "";

@@ -18,19 +18,27 @@ namespace Genesys.WebServicesClient.Components
         public GenesysUser User
         {
             get { return (GenesysUser)ParentComponent; }
-            set { ParentComponent = value; }
+            set
+            {
+                if (ParentComponent != null && ParentComponent != value)
+                    throw new InvalidOperationException("User can only be set once");
+
+                ParentComponent = value;
+                value.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
+                value.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
+            }
         }
 
-        protected override void ActivateImpl()
+        protected override void Dispose(bool disposing)
         {
-            User.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
-            User.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
-        }
+            if (disposing)
+                if (User != null)
+                {
+                    User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
+                    User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
+                }
 
-        protected override void DeactivateImpl()
-        {
-            User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
-            User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
+         	base.Dispose(disposing);
         }
 
         void User_ResourceUpdatedInternal(UserResource user)
