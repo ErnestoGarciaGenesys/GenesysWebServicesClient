@@ -55,10 +55,10 @@
             this.userDataKeyTextBox = new System.Windows.Forms.TextBox();
             this.userDataGrid = new System.Windows.Forms.PropertyGrid();
             this.optionLabel = new System.Windows.Forms.Label();
-            this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
-            this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
             this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysCallManager();
             this.genesysDevice = new Genesys.WebServicesClient.Components.GenesysDevice();
+            this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
+            this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
             ((System.ComponentModel.ISupportInitialize)(this.callsDataGrid)).BeginInit();
             this.userGroupBox.SuspendLayout();
             this.deviceGroupBox.SuspendLayout();
@@ -324,17 +324,6 @@
             this.optionLabel.TabIndex = 21;
             this.optionLabel.Text = "[user option value]";
             // 
-            // genesysUser
-            // 
-            this.genesysUser.Connection = this.genesysConnection;
-            // 
-            // genesysConnection
-            // 
-            this.genesysConnection.OpenTimeoutMs = 0;
-            this.genesysConnection.Password = "";
-            this.genesysConnection.ServerUri = global::Genesys.WebServicesClient.Sample.Agent.WinForms.Properties.Settings.Default.GenesysServerUri;
-            this.genesysConnection.Username = "";
-            // 
             // genesysCallManager
             // 
             this.genesysCallManager.User = this.genesysUser;
@@ -343,6 +332,16 @@
             // 
             this.genesysDevice.DeviceIndex = 0;
             this.genesysDevice.User = this.genesysUser;
+            // 
+            // genesysConnection
+            // 
+            this.genesysConnection.Password = "";
+            this.genesysConnection.ServerUri = global::Genesys.WebServicesClient.Sample.Agent.WinForms.Properties.Settings.Default.GenesysServerUri;
+            this.genesysConnection.Username = "";
+            // 
+            // genesysUser
+            // 
+            this.genesysUser.Connection = this.genesysConnection;
             // 
             // MainForm
             // 
@@ -371,7 +370,6 @@
         #endregion
 
         private Components.GenesysConnection genesysConnection;
-        private Components.GenesysUser genesysUser;
         private System.Windows.Forms.Button readyButton;
         private System.Windows.Forms.Button notReadyButton;
         private System.Windows.Forms.Label errorsLabel;
@@ -400,6 +398,7 @@
         private System.Windows.Forms.Button updateUserDataButton;
         private System.Windows.Forms.TextBox userDataKeyTextBox;
         private System.Windows.Forms.Label optionLabel;
+        private Components.GenesysUser genesysUser;
     }
 }
 

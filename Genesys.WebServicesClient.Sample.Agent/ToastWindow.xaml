@@ -1,0 +1,40 @@
+﻿<Window x:Class="Genesys.WebServicesClient.Sample.Agent.WPF.ToastWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ToastWindow" Height="179" Width="300" ResizeMode="NoResize" Background="Transparent" AllowsTransparency="True" WindowStyle="None">
+    <Grid>
+        <Border BorderThickness="3" HorizontalAlignment="Left" Height="179" VerticalAlignment="Top" Width="300" CornerRadius="10">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveCaptionColorKey}}"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+            </Border.Background>
+            <Grid>
+                <Label Content="Incoming Call!" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
+                <Grid Margin="0,41,0,0" HorizontalAlignment="Center" VerticalAlignment="Top">
+                    <Label Content="Caller phone:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    <Label Content="{Binding Participants[0], FallbackValue=(Caller)}" HorizontalAlignment="Left" Margin="85,0,0,0" VerticalAlignment="Top"/>
+                    <Label Content="Caller name:" HorizontalAlignment="Left" Margin="0,31,0,0" VerticalAlignment="Top"/>
+                    <Label Content="{Binding UserData.ContactName, FallbackValue=(Name)}" HorizontalAlignment="Left" Margin="85,31,0,0" VerticalAlignment="Top"/>
+                </Grid>
+                <Grid Margin="0,118,0,23" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                    <Button x:Name="Answer" Content="Answer call" IsEnabled="{Binding AnswerCapable, FallbackValue=false}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Click="Answer_Click"/>
+                    <Button x:Name="Close" Content="Close" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Margin="103,0,0,0" Click="Close_Click"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation
+                        Storyboard.TargetProperty="Opacity"
+                        From="0.0" To="1.0" Duration="0:0:2" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
+</Window>

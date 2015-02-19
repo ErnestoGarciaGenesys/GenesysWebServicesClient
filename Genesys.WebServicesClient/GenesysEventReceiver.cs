@@ -51,20 +51,69 @@ namespace Genesys.WebServicesClient
 
             this.taskFactory = new TaskFactory(taskScheduler);
         }
-        
+
+        /// <summary>
+        /// Opens the channel for receiving events. This method blocks until
+        /// the channel is connected, and throws an exception if not connected
+        /// successfully.
+        /// 
+        /// Calling <see cref="Dispose()"/> while this method is executing
+        /// will make this method throw an <see cref="OpenFailedException"/>
+        /// </summary>
+        /// 
+        /// <exception cref="OpenFailedException"/>
+        /// <exception cref="TimeoutException"/>
 	    public void Open(int timeoutMs)
         {
             Log.TraceInformation("BayeuxClient handshaking...");
             bayeuxClient.handshake();
-            bayeuxClient.waitFor(timeoutMs, new List<BayeuxClient.State>() { BayeuxClient.State.CONNECTED });
-            Log.TraceInformation(bayeuxClient.Connected ? "BayeuxClient connected" : "BayeuxClient not connected");
+            BayeuxClient.State state = bayeuxClient.waitFor(timeoutMs,
+                new List<BayeuxClient.State>() {
+                    BayeuxClient.State.CONNECTED,
+                    BayeuxClient.State.DISCONNECTED
+                });
+            
+            Log.TraceInformation("BayeuxClient " + state);
+
+            switch (state)
+            {
+                case BayeuxClient.State.CONNECTED:
+                    break;
+                case BayeuxClient.State.INVALID:
+                    throw new TimeoutException("BayeuxClient open timeout");
+                case BayeuxClient.State.DISCONNECTED:
+                default:
+                    throw new OpenFailedException("BayeuxClient failed to open. State = " + state);
+            }
+        }
+
+        /// <summary>
+        /// Opens the channel for receiving events. This method just begins the open procedure.
+        /// It does not block, so it does not guarantee that the channel is open when returning.
+        /// </summary>
+        public void BeginOpen()
+        {
+            Log.TraceInformation("BayeuxClient handshaking...");
+            bayeuxClient.handshake();
+        }
+
+        /// <summary>
+        /// Closes the receiving channel. This method just begins the close procedure.
+        /// It does not block, so it does not guarantee that the channel is closed when returning.
+        /// 
+        /// This object may continue to be used after calling this method. <see cref="Open()"/> can
+        /// be called again.
+        /// </summary>
+        public void Close()
+        {
+            bayeuxClient.disconnect();
         }
 
         public void Dispose()
         {
-            bayeuxClient.disconnect();
+            Close();
         }
-	
+
     //private void onConnected() {
     //    LOG.debug("Resubscribing all subscriptions");
     //    for (Subscription subscription : subscriptions) {

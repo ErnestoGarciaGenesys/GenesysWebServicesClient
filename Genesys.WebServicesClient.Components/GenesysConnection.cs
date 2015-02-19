@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
@@ -27,8 +28,13 @@ namespace Genesys.WebServicesClient.Components
         [Category("Connection")]
         public string Password { get; set; }
 
-        [Category("Connection"), DefaultValue(5000)]
-        public int OpenTimeoutMs { get; set; }
+        int openTimeoutMs = 10000;
+        [Category("Connection"), DefaultValue(10000)]
+        public int OpenTimeoutMs
+        {
+            get { return openTimeoutMs; }
+            set { openTimeoutMs = value; }
+        }
 
         /// <summary>
         /// When using this constructor, this instance must be disposed explicitly.
@@ -44,12 +50,7 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        [ReadOnly(true), Browsable(false)]
-        public ConnectionState ConnectionState { get; private set; }
-
-        internal event EventHandler<EventArgs> ConnectionStateChanged;
-
-        public void Open()
+        public async Task OpenAsync()
         {
             Close();
 
@@ -57,19 +58,17 @@ namespace Genesys.WebServicesClient.Components
             {
                 ServerUri = ServerUri,
                 UserName = Username,
-                Password = Password
+                Password = Password,
             }
             .Create();
 
             eventReceiver = client.CreateEventReceiver();
 
-            // TODO: do asynchronously in a background thread: Task.Factory.StartNew(..., TaskCreationOptions.LongRunning)?
-            // And convert this method in ConnectAsync, returning a Task.
-            eventReceiver.Open(OpenTimeoutMs);
+            await Task.Factory.StartNew(
+                () => eventReceiver.Open(OpenTimeoutMs),
+                TaskCreationOptions.LongRunning);
 
-            ConnectionState = ConnectionState.Open;
-            if (ConnectionStateChanged != null)
-                ConnectionStateChanged(this, EventArgs.Empty);        
+            SetConnectionState(ConnectionState.Open);
         }
 
         public void Close()
@@ -86,9 +85,14 @@ namespace Genesys.WebServicesClient.Components
                 client = null;
             }
 
-            if (ConnectionState == ConnectionState.Open)
+            SetConnectionState(ConnectionState.Close);
+        }
+
+        private void SetConnectionState(ConnectionState connectionState) {
+            if (ConnectionState != connectionState)
             {
-                ConnectionState = ConnectionState.Close;
+                ConnectionState = connectionState;
+
                 if (ConnectionStateChanged != null)
                     ConnectionStateChanged(this, EventArgs.Empty);
             }
@@ -102,14 +106,21 @@ namespace Genesys.WebServicesClient.Components
             base.Dispose(disposing);
         }
 
-        internal GenesysClient Client
+        [Browsable(false)]
+        public GenesysClient Client
         {
             get { return client; }
         }
 
-        internal GenesysEventReceiver EventReceiver
+        [Browsable(false)]
+        public GenesysEventReceiver EventReceiver
         {
             get { return eventReceiver; }
         }
+
+        [ReadOnly(true), Browsable(false)]
+        public ConnectionState ConnectionState { get; private set; }
+
+        internal event EventHandler<EventArgs> ConnectionStateChanged;
     }
 }

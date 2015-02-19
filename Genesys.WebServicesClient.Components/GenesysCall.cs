@@ -26,6 +26,7 @@ namespace Genesys.WebServicesClient.Components
             this.callManager = callManager;
             Id = callResource.id;
             State = callResource.state;
+            Participants = callResource.participants;
             SetCapabilities(callResource.capabilities);
             userData = new CallUserData(callResource);
             UpdateCapableProperties(callResource.capabilities);
@@ -56,6 +57,7 @@ namespace Genesys.WebServicesClient.Components
             if (notificationType == "StatusChange")
             {
                 ChangeAndNotifyProperty("State", callResource.state);
+                ChangeAndNotifyProperty("Participants", callResource.participants);
                 SetCapabilities(callResource.capabilities);
                 UpdateCapableProperties(callResource.capabilities);
                 RaisePropertyChanged("Capabilities");
@@ -117,5 +119,7 @@ namespace Genesys.WebServicesClient.Components
         }
 
         public bool UpdateUserDataCapable { get; private set; }
+
+        public IList<string> Participants { get; private set; }
     }
 }

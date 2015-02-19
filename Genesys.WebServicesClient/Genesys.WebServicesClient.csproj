@@ -58,6 +58,7 @@
     <Compile Include="GenesysRequest.cs" />
     <Compile Include="Impl\CustomizableLongPollingTransport.cs" />
     <Compile Include="InvalidGenesysResponseException.cs" />
+    <Compile Include="OpenFailedException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Impl\WebSocketTransport.cs" />
     <Compile Include="Resources\CallResource.cs" />

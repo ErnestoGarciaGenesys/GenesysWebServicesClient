@@ -7,7 +7,7 @@ namespace Genesys.WebServicesClient.Components.Test
     public class UsabilityTests
     {
         [TestMethod]
-        public void initialize_connection_and_users_sync()
+        public async void initialize_connection_and_users_sync()
         {
             var connection = new GenesysConnection()
             {
@@ -26,7 +26,7 @@ namespace Genesys.WebServicesClient.Components.Test
                 Connection = connection
             };
 
-            connection.Open();
+            await connection.OpenAsync();
             try
             {
                 //user1.Activate();

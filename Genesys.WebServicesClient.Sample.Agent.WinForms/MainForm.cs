@@ -80,7 +80,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
             try
             {
-                genesysConnection.Open();
+                await genesysConnection.OpenAsync();
                 await genesysUser.ActivateAsync();
             }
             catch (Exception)

@@ -22,7 +22,8 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
     public partial class MainWindow : Window
     {
         readonly GenesysConnection genesysConnection;
-        readonly GenesysUser genesysAgent;
+        readonly GenesysUser genesysUser;
+        readonly GenesysDevice genesysDevice;
         readonly GenesysCallManager genesysCallManager;
         
         readonly Resource userResource = new Resource(new Resource.ResourceDescription()
@@ -61,15 +62,26 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                     Password = "password",
                 };
 
-            genesysAgent = new GenesysUser()
+            genesysUser = new GenesysUser()
                 {
                     Connection = genesysConnection,
                 };
 
+            genesysDevice = new GenesysDevice()
+                {
+                    User = genesysUser,
+                };
+
             genesysCallManager = new GenesysCallManager()
                 {
-                    User = genesysAgent,
+                    User = genesysUser,
                 };
+
+            DevicePanel.DataContext = genesysDevice;
+            CallsPanel.DataContext = genesysCallManager;
+            ActiveCallPanel.DataContext = genesysCallManager;
+
+            genesysCallManager.Calls.ListChanged += Calls_ListChanged;
 
             //genesysAgent.UserResourceUpdated += data =>
             //    {
@@ -77,13 +89,11 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             //        genesysResourceManager.UpdateResource("Agent", (IDictionary<string, object>)data["user"]);
             //    };
 
-            genesysAgent.ResourceUpdated += (s, e) =>
+            genesysUser.ResourceUpdated += (s, e) =>
                 {
                     UpdateUserDataGrid();
                 };
 
-            this.DataContext = genesysAgent;
-            callGrid.DataContext = genesysCallManager;
             callDataGrid.ItemsSource = genesysCallManager.Calls;
             userGrid.DataContext = userResource;
 
@@ -96,6 +106,14 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             testGrid2.DataContext = dynamicObject;
         }
 
+        void Calls_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemAdded)
+            {
+                new ToastWindow(genesysCallManager.Calls[e.NewIndex]).Show();
+            }
+        }
+
         void UpdateUserDataGrid()
         {
             if (genesysCallManager.ActiveCall != null)
@@ -106,19 +124,19 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             }
         }
 
-        void readyButton_Click(object sender, RoutedEventArgs e)
+        void SetReady_Click(object sender, RoutedEventArgs e)
         {
-            genesysAgent.ChangeState("NotReady");
+            genesysUser.ChangeState("Ready");
         }
 
-        void notReadyButton_Click(object sender, RoutedEventArgs e)
+        void SetNotReady_Click(object sender, RoutedEventArgs e)
         {
-            genesysAgent.ChangeState("Ready");
+            genesysUser.ChangeState("NotReady");
         }
 
         void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            genesysAgent.ActivateAsync();
+            genesysUser.ActivateAsync();
             UpdateUserDataGrid();
         }
 
@@ -143,6 +161,34 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         {
             dynamicObject.Property = "changed";
             dynamicObject.ExtendedProperty = "another";
+        }
+
+        void TestToast_Click(object sender, RoutedEventArgs e)
+        {
+            ToastWindow toast = new ToastWindow();
+            toast.Show();
+        }
+
+        async void OpenConnection_Click(object sender, RoutedEventArgs e)
+        {
+            genesysConnection.Username = Username.Text;
+            genesysConnection.Password = Password.Text;
+
+            try
+            {
+                await genesysConnection.OpenAsync();
+                await genesysUser.ActivateAsync();
+            }
+            catch (Exception)
+            {
+                genesysConnection.Close();
+                throw;
+            }
+        }
+
+        void CloseConnection_Click(object sender, RoutedEventArgs e)
+        {
+            genesysConnection.Dispose();
         }
     }
 }
