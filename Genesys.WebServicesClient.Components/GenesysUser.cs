@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,26 +11,32 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class InternalExceptionThrownEventArgs : EventArgs
-    {
-        readonly Exception exception;
-
-        public InternalExceptionThrownEventArgs(Exception exception)
-        {
-            this.exception = exception;
-        }
-
-        public Exception Exception
-        {
-            get { return exception; }
-        }
-    }
-
     public class GenesysUser : NotifyPropertyChangedComponent
     {
+        /// <summary>
+        /// That this object is active means that it is being monitored and will be recovered in the case of reconnections.
+        /// </summary>
         public bool Active { get; private set; }
 
         GenesysConnection connection;
+
+        enum Stage { Idle, GettingResource, Available }
+
+        Stage stage = Stage.Idle;
+
+        // Valid only during the GettingResource stage
+        CancellationTokenSource gettingResourceCancel;
+
+        // Needs disposal
+        IEventSubscription eventSubscription;
+
+        /// <summary>
+        /// That this object is available means that this object has all its resource properties and methods available to use.
+        /// Notice that Available implies <see cref="Active"/>, but Active does not imply Available.
+        /// </summary>
+        public bool Available { get { return stage == Stage.Available; } }
+
+        public event EventHandler AvailableChanged;
 
         [Category("Connection")]
         public GenesysConnection Connection
@@ -56,25 +63,6 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        enum Stage { Idle, GettingResource, Available }
-
-        Stage stage = Stage.Idle;
-
-        // Valid during the GettingResource stage
-        CancellationTokenSource gettingResourceCancel;
-
-        IEventSubscription eventSubscription;
-
-        public bool Available { get { return stage == Stage.Available; } }
-
-        public event EventHandler AvailableChanged;
-
-        void RaiseAvailableChanged()
-        {
-            if (AvailableChanged != null)
-                AvailableChanged(this, EventArgs.Empty);
-        }
-
         public async Task ActivateAsync()
         {
             if (Active)
@@ -83,10 +71,11 @@ namespace Genesys.WebServicesClient.Components
             if (connection == null)
                 throw new InvalidOperationException("Connection property must be set");
 
+
             Active = true;
 
             if (connection.ConnectionState == ConnectionState.Open)
-                await InitializeAsync(automatic: false);
+                await InitializeAsync(recovering: false);
         }
 
         public async Task DeactivateAsync()
@@ -106,15 +95,24 @@ namespace Genesys.WebServicesClient.Components
         void connection_ConnectionStateChanged(object sender, EventArgs e)
         {
             if (Connection.ConnectionState == ConnectionState.Open && Active)
-                InitializeAsync(automatic: true);
+                InitializeAsync(recovering: true);
 
             if (Connection.ConnectionState == ConnectionState.Close)
                 DeactivateAsync();
         }
 
-        public event EventHandler<InternalExceptionThrownEventArgs> InternalExceptionThrown;
+        /// <summary>
+        /// Raised when an automatic recovery (re-activation) of this resource failed.
+        /// </summary>
+        public event EventHandler<RecoveryFailedEventArgs> RecoveryFailed;
+        
+        void RaiseRecoveryFailed(ActivationException e)
+        {
+            if (RecoveryFailed != null)
+                RecoveryFailed(this, new RecoveryFailedEventArgs(e));
+        }
 
-        async Task InitializeAsync(bool automatic)
+        async Task InitializeAsync(bool recovering)
         {
             if (stage == Stage.Idle)
             {
@@ -122,12 +120,16 @@ namespace Genesys.WebServicesClient.Components
 
                 stage = Stage.GettingResource;
 
+                // Documentation about recovering existing state:
+                // http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
+
                 gettingResourceCancel = new CancellationTokenSource();
                 IGenesysResponse<UserResourceResponse> response = null;
+                var request = Connection.Client.CreateRequest("GET", "/api/v2/me?subresources=*");
+                
                 try
                 {
-                    // doc: http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
-                    response = await Connection.Client.CreateRequest("GET", "/api/v2/me?subresources=*").SendAsync<UserResourceResponse>(gettingResourceCancel.Token);
+                    response = await request.SendAsync<UserResourceResponse>(gettingResourceCancel.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -138,12 +140,12 @@ namespace Genesys.WebServicesClient.Components
                 {
                     stage = Stage.Idle;
 
-                    if (automatic && InternalExceptionThrown != null)
-                        InternalExceptionThrown(this, new InternalExceptionThrownEventArgs(e));
+                    if (recovering)
+                        RaiseRecoveryFailed(new ActivationException(e));
 
                     Dispose(true);
 
-                    if (!automatic)
+                    if (!recovering)
                         throw;
                 }
 
@@ -151,6 +153,9 @@ namespace Genesys.WebServicesClient.Components
                 {
                     var userResource = (IDictionary<string, object>)response.AsDictionary["user"];
                     var untypedSettings = (IDictionary<string, object>)userResource["settings"];
+                    
+                    // Concretizing dictionary type to a dictionary of dictionaries,
+                    // because Settings contains sections, which contain key-value pairs.
                     Settings = untypedSettings.ToDictionary(kvp => kvp.Key, kvp => (IDictionary<string, object>)kvp.Value);
 
                     stage = Stage.Available;
@@ -164,17 +169,26 @@ namespace Genesys.WebServicesClient.Components
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 try
                 {
                     eventSubscription.Dispose();
-                    eventSubscription = null;
                 }
                 catch (Exception e)
                 {
-                    InternalExceptionThrown(this, new InternalExceptionThrownEventArgs(e));
+                    Trace.TraceError("Event unsubscription failed: " + e);
                 }
 
+                eventSubscription = null;
+            }
+
             base.Dispose(disposing);
+        }
+
+        void RaiseAvailableChanged()
+        {
+            if (AvailableChanged != null)
+                AvailableChanged(this, EventArgs.Empty);
         }
 
         public Task ChangeState(string value)
@@ -203,4 +217,28 @@ namespace Genesys.WebServicesClient.Components
         
         public IDictionary<string, IDictionary<string, object>> Settings { get; private set; }
     }
+
+    public class ActivationException : Exception
+    {
+        public ActivationException(Exception innerException)
+            : base(innerException.Message, innerException)
+        {
+        }
+    }
+
+    public class RecoveryFailedEventArgs : EventArgs
+    {
+        private readonly ActivationException exception;
+
+        public RecoveryFailedEventArgs(ActivationException exception)
+        {
+            this.exception = exception;
+        }
+
+        public ActivationException ActivationException
+        {
+            get { return exception; }
+        }
+    }
+
 }

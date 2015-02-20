@@ -121,6 +121,13 @@ namespace Genesys.WebServicesClient
     //    }
     //}
 	    
+        /// <summary>
+        /// This method does not wait for a response to the subscribe request. Therefore, this method
+        /// can be called without the danger of blocking for a long time.
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="eventHandler"></param>
+        /// <returns></returns>
 	    public IEventSubscription Subscribe(string channel, EventHandler<GenesysEvent> eventHandler)
         {
             var bayeuxListener = new MessageListener(taskFactory, eventHandler);
@@ -169,6 +176,7 @@ namespace Genesys.WebServicesClient
                 {
                     if (eventReceiver.isConnected)
                     {
+                        // subscribe does not block for response. It ends calling CometD Transport.send.
                         eventReceiver.bayeuxClient.getChannel(channel).subscribe(bayeuxListener);
                     }
                 }
