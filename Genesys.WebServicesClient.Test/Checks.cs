@@ -4,7 +4,7 @@ using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Tests
+namespace Genesys.WebServicesClient.Test
 {
     [TestClass]
     public class Checks

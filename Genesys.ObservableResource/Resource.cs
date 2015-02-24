@@ -7,6 +7,29 @@ using System.Threading.Tasks;
 
 namespace Genesys.ObservableResource
 {
+
+    class ResourceDeclarationSample
+    {
+        readonly Resource userResource = new Resource(new Resource.ResourceDescription()
+        {
+            SimpleKeys = new string[] { "id", "userName" },
+            ArrayResources = new Resource.ArrayResourceDescription[]
+                    {
+                        new Resource.ArrayResourceDescription()
+                        {
+                            ArrayResourceKey = "devices",
+                            Index = 0,
+                            ResourceIdKey = "id",
+                            ResourceDescription = new Resource.ResourceDescription()
+                            {
+                                SimpleKeys = new string[] { "id" },
+                                ArrayResources = new Resource.ArrayResourceDescription[] {},
+                            },
+                        },
+                    },
+        });
+    }
+
     public abstract class AbstractCustomTypeDescriptor : CustomTypeDescriptor
     {
         PropertyDescriptorCollection propertyDescriptors;

@@ -23,6 +23,10 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         public ToastWindow()
         {
             InitializeComponent();
+
+            var workArea = Screen.PrimaryScreen.WorkingArea;
+            this.Left = workArea.Right - this.Width - 16;
+            this.Top = workArea.Bottom - this.Height - 32;
         }
 
         public ToastWindow(GenesysCall call)
@@ -30,18 +34,14 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         {
             this.call = call;
             this.DataContext = call;
-
-            var workArea = Screen.PrimaryScreen.WorkingArea;
-            this.Left = workArea.Right - this.Width - 16;
-            this.Top = workArea.Bottom - this.Height - 32;
         }
 
-        void Answer_Click(object sender, RoutedEventArgs e)
+        void AnswerButton_Click(object sender, RoutedEventArgs e)
         {
             call.Answer();
         }
 
-        void Close_Click(object sender, RoutedEventArgs e)
+        void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }

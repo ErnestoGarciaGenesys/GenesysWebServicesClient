@@ -19,8 +19,8 @@
                     <Label Content="{Binding UserData.ContactName, FallbackValue=(Name)}" HorizontalAlignment="Left" Margin="85,31,0,0" VerticalAlignment="Top"/>
                 </Grid>
                 <Grid Margin="0,118,0,23" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                    <Button x:Name="Answer" Content="Answer call" IsEnabled="{Binding AnswerCapable, FallbackValue=false}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Click="Answer_Click"/>
-                    <Button x:Name="Close" Content="Close" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Margin="103,0,0,0" Click="Close_Click"/>
+                    <Button x:Name="AnswerButton" Content="Answer call" IsEnabled="{Binding AnswerCapable, FallbackValue=false}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Click="AnswerButton_Click"/>
+                    <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" VerticalAlignment="Top" Width="98" Height="32" Margin="103,0,0,0" Click="CloseButton_Click"/>
                 </Grid>
             </Grid>
         </Border>

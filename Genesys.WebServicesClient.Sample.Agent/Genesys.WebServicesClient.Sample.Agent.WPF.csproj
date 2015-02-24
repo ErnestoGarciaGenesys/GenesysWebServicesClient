@@ -105,17 +105,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Genesys.ObservableResource\Genesys.ObservableResource.csproj">
-      <Project>{f8b3e095-a866-46cf-9eb3-45de1347a40d}</Project>
-      <Name>Genesys.ObservableResource</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Genesys.WebServicesClient.Components\Genesys.WebServicesClient.Components.csproj">
       <Project>{e0e4d679-73a4-4fe8-b387-a3252841c1b3}</Project>
       <Name>Genesys.WebServicesClient.Components</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Genesys.WebServicesClient\Genesys.WebServicesClient.csproj">
-      <Project>{e918fcc4-ea5c-4e4c-959e-db4a8907e343}</Project>
-      <Name>Genesys.WebServicesClient</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

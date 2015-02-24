@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2013 for Windows Desktop
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{4E81D71A-8636-49E0-AD21-E845D26D32E9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343} = {E918FCC4-EA5C-4E4C-959E-DB4A8907E343}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient", "Genesys.WebServicesClient\Genesys.WebServicesClient.csproj", "{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Sample.Agent.WPF", "Genesys.WebServicesClient.Sample.Agent\Genesys.WebServicesClient.Sample.Agent.WPF.csproj", "{89DB3DB1-C11F-4F4C-BD7D-3D5DD6592FB1}"
@@ -22,16 +17,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.ObservableResource"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Components.Test", "Genesys.WebServicesClient.Components.Test\Genesys.WebServicesClient.Components.Test.csproj", "{15CCDB7F-0136-4D53-8362-C4FC9619E510}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Test", "Genesys.WebServicesClient.Test\Genesys.WebServicesClient.Test.csproj", "{4E81D71A-8636-49E0-AD21-E845D26D32E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E918FCC4-EA5C-4E4C-959E-DB4A8907E343}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -60,6 +53,10 @@ Global
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E81D71A-8636-49E0-AD21-E845D26D32E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

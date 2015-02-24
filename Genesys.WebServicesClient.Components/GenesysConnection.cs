@@ -10,13 +10,17 @@ namespace Genesys.WebServicesClient.Components
 {
     public enum ConnectionState
     {
-        Open, Close
+        Close, Opening, Open
     }
 
-    public class GenesysConnection : ActiveComponent
+    public class GenesysConnection : NotifyPropertyChangedComponent
     {
         GenesysClient client;
         GenesysEventReceiver eventReceiver;
+        ConnectionState connectionState;
+        readonly AwaitingActivate awaitingOpen = new AwaitingActivate();
+
+        internal event EventHandler<EventArgs> ConnectionStateChanged;
 
         [Category("Connection")]
         public string ServerUri { get; set; }
@@ -52,23 +56,44 @@ namespace Genesys.WebServicesClient.Components
 
         public async Task OpenAsync()
         {
-            Close();
-
-            client = new GenesysClient.Setup()
+            if (connectionState == ConnectionState.Close)
             {
-                ServerUri = ServerUri,
-                UserName = Username,
-                Password = Password,
+                try
+                {
+                    SetConnectionState(ConnectionState.Opening);
+
+                    client = new GenesysClient.Setup()
+                    {
+                        ServerUri = ServerUri,
+                        UserName = Username,
+                        Password = Password,
+                    }
+                    .Create();
+
+                    eventReceiver = client.CreateEventReceiver();
+
+                    await Task.Factory.StartNew(
+                        () => eventReceiver.Open(OpenTimeoutMs),
+                        TaskCreationOptions.LongRunning);
+
+                    SetConnectionState(ConnectionState.Open);
+
+                    awaitingOpen.Complete(null);
+                }
+                catch (Exception e)
+                {
+                    Close();
+                    awaitingOpen.Complete(e);
+                }
             }
-            .Create();
-
-            eventReceiver = client.CreateEventReceiver();
-
-            await Task.Factory.StartNew(
-                () => eventReceiver.Open(OpenTimeoutMs),
-                TaskCreationOptions.LongRunning);
-
-            SetConnectionState(ConnectionState.Open);
+            else if (connectionState == ConnectionState.Opening)
+            {
+                await awaitingOpen.Await();
+            }
+            else
+            {
+                // Connection is open. Do nothing
+            }
         }
 
         public void Close()
@@ -88,13 +113,16 @@ namespace Genesys.WebServicesClient.Components
             SetConnectionState(ConnectionState.Close);
         }
 
-        private void SetConnectionState(ConnectionState connectionState) {
-            if (ConnectionState != connectionState)
+        void SetConnectionState(ConnectionState s)
+        {
+            if (connectionState != s)
             {
-                ConnectionState = connectionState;
+                connectionState = s;
 
                 if (ConnectionStateChanged != null)
                     ConnectionStateChanged(this, EventArgs.Empty);
+
+                RaisePropertyChanged("ConnectionState");
             }
         }
 
@@ -119,8 +147,9 @@ namespace Genesys.WebServicesClient.Components
         }
 
         [ReadOnly(true), Browsable(false)]
-        public ConnectionState ConnectionState { get; private set; }
-
-        internal event EventHandler<EventArgs> ConnectionStateChanged;
+        public ConnectionState ConnectionState
+        {
+            get { return connectionState; }
+        }
     }
 }

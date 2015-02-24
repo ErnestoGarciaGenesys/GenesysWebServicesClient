@@ -7,38 +7,39 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
+    [Obsolete]
     public abstract class ActiveComponent : DisposableComponent
     {
-        //protected bool isParent = false;
-        ActiveComponent parentComponent;
+        ////protected bool isParent = false;
+        //ActiveComponent parentComponent;
 
-        protected ActiveComponent ParentComponent
-        {
-            get { return parentComponent; }
-            set
-            {
-                parentComponent = value;
+        //protected ActiveComponent ParentComponent
+        //{
+        //    get { return parentComponent; }
+        //    set
+        //    {
+        //        parentComponent = value;
 
-                //if (parentComponent == null)
-                //    parentComponent.AvailableChanged -= parentComponent_AvailableChanged;
-                //else
-                //    parentComponent.AvailableChanged += parentComponent_AvailableChanged;
-            }
-        }
+        //        //if (parentComponent == null)
+        //        //    parentComponent.AvailableChanged -= parentComponent_AvailableChanged;
+        //        //else
+        //        //    parentComponent.AvailableChanged += parentComponent_AvailableChanged;
+        //    }
+        //}
 
-        [Obsolete]
-        bool autoActivate = true;
+        //[Obsolete]
+        //bool autoActivate = true;
 
-        /// <summary>
-        /// If set to true, this component will be activated automatically right after its parent is activated.
-        /// in that case there is no need to call <see cref="Initialize()"/> on this component.
-        /// </summary>
-        [Obsolete, DefaultValue(true), Category("Activation")]
-        public virtual bool AutoActivate
-        {
-            get { return autoActivate; }
-            set { autoActivate = value; }
-        }
+        ///// <summary>
+        ///// If set to true, this component will be activated automatically right after its parent is activated.
+        ///// in that case there is no need to call <see cref="Initialize()"/> on this component.
+        ///// </summary>
+        //[Obsolete, DefaultValue(true), Category("Activation")]
+        //public virtual bool AutoActivate
+        //{
+        //    get { return autoActivate; }
+        //    set { autoActivate = value; }
+        //}
 
         //void parentComponent_AvailableChanged(object sender, EventArgs e)
         //{

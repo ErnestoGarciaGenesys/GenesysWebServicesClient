@@ -14,16 +14,18 @@ namespace Genesys.WebServicesClient.Components
         readonly BindingList<GenesysCall> calls = new BindingList<GenesysCall>();
         public BindingList<GenesysCall> Calls { get { return calls; } }
 
+        GenesysUser user;
+
         [Category("Activation")]
         public GenesysUser User
         {
-            get { return (GenesysUser)ParentComponent; }
+            get { return user; }
             set
             {
-                if (ParentComponent != null && ParentComponent != value)
+                if (user != null && user != value)
                     throw new InvalidOperationException("User can only be set once");
 
-                ParentComponent = value;
+                user = value;
                 value.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
                 value.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
             }

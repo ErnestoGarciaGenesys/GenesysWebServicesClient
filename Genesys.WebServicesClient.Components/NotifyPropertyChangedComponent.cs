@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public abstract class NotifyPropertyChangedComponent : ActiveComponent, INotifyPropertyChanged
+    public abstract class NotifyPropertyChangedComponent : DisposableComponent, INotifyPropertyChanged
     {
         IDictionary<string, object> attributeValues = new Dictionary<string, object>();
 

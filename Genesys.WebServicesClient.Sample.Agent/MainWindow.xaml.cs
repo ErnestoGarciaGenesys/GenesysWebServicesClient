@@ -1,5 +1,4 @@
-﻿using Genesys.ObservableResource;
-using Genesys.WebServicesClient.Components;
+﻿using Genesys.WebServicesClient.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,42 +24,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         readonly GenesysUser genesysUser;
         readonly GenesysDevice genesysDevice;
         readonly GenesysCallManager genesysCallManager;
-        
-        readonly Resource userResource = new Resource(new Resource.ResourceDescription()
-            {
-                SimpleKeys = new string[] { "id", "userName" },
-                ArrayResources = new Resource.ArrayResourceDescription[]
-                    {
-                        new Resource.ArrayResourceDescription()
-                        {
-                            ArrayResourceKey = "devices",
-                            Index = 0,
-                            ResourceIdKey = "id",
-                            ResourceDescription = new Resource.ResourceDescription()
-                            {
-                                SimpleKeys = new string[] { "id" },
-                                ArrayResources = new Resource.ArrayResourceDescription[] {},
-                            },
-                        },
-                    },
-            });
-
-        readonly GenesysResourceManagerOld genesysResourceManager = new GenesysResourceManagerOld();
-
-        readonly TestComponent testComponent = new TestComponent();
-
-        readonly dynamic dynamicObject = new ExpandoObject();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            genesysConnection = new GenesysConnection()
-                {
-                    ServerUri = "http://localhost:5088",
-                    Username = "paveld@redwings.com",
-                    Password = "password",
-                };
+            genesysConnection = new GenesysConnection();
 
             genesysUser = new GenesysUser()
                 {
@@ -77,33 +46,18 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                     User = genesysUser,
                 };
 
+            ConnectionPanel.DataContext = genesysConnection;
             DevicePanel.DataContext = genesysDevice;
             CallsPanel.DataContext = genesysCallManager;
             ActiveCallPanel.DataContext = genesysCallManager;
-
-            genesysCallManager.Calls.ListChanged += Calls_ListChanged;
-
-            //genesysAgent.UserResourceUpdated += data =>
-            //    {
-            //        userResource.Update((IDictionary<string, object>)data["user"]);
-            //        genesysResourceManager.UpdateResource("Agent", (IDictionary<string, object>)data["user"]);
-            //    };
+            CallDataGrid.ItemsSource = genesysCallManager.Calls;
 
             genesysUser.ResourceUpdated += (s, e) =>
-                {
-                    UpdateUserDataGrid();
-                };
+            {
+                UpdateUserDataGrid();
+            };
 
-            callDataGrid.ItemsSource = genesysCallManager.Calls;
-            userGrid.DataContext = userResource;
-
-            genesysResourceManager.CreateResource("Agent");
-            userGrid2.DataContext = genesysResourceManager;
-
-            testGrid.DataContext = testComponent;
-
-            dynamicObject.Property = "testing expando";
-            testGrid2.DataContext = dynamicObject;
+            genesysCallManager.Calls.ListChanged += Calls_ListChanged;
         }
 
         void Calls_ListChanged(object sender, ListChangedEventArgs e)
@@ -134,33 +88,14 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             genesysUser.ChangeState("NotReady");
         }
 
-        void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            genesysUser.ActivateAsync();
-            UpdateUserDataGrid();
-        }
-
-        void answerButton_Click(object sender, RoutedEventArgs e)
+        void AnswerButton_Click(object sender, RoutedEventArgs e)
         {
             genesysCallManager.ActiveCall.Answer();
         }
 
-        void hangupButton_Click(object sender, RoutedEventArgs e)
+        void HangupButton_Click(object sender, RoutedEventArgs e)
         {
             genesysCallManager.ActiveCall.Hangup();
-        }
-
-        void addPropertyButton_Click(object sender, RoutedEventArgs e)
-        {
-            testComponent.AddProperty();
-            testGrid.DataContext = null;
-            testGrid.DataContext = testComponent;
-        }
-
-        void addPropertyButton2_Click(object sender, RoutedEventArgs e)
-        {
-            dynamicObject.Property = "changed";
-            dynamicObject.ExtendedProperty = "another";
         }
 
         void TestToast_Click(object sender, RoutedEventArgs e)
@@ -171,6 +106,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
         async void OpenConnection_Click(object sender, RoutedEventArgs e)
         {
+            genesysConnection.ServerUri = ServerUri.Text;
             genesysConnection.Username = Username.Text;
             genesysConnection.Password = Password.Text;
 

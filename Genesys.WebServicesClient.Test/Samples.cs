@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Genesys.WebServicesClient;
 
-namespace Tests
+namespace Genesys.WebServicesClient.Test
 {
     [TestClass]
     public class Samples
