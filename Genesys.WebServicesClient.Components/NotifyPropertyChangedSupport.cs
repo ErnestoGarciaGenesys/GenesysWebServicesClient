@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Genesys.WebServicesClient.Components
 {
@@ -30,59 +31,64 @@ namespace Genesys.WebServicesClient.Components
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Saved for future reference if having to implement more complex data binding objects.
-        #region INotifyDataErrorInfo
+        #region Utility for Windows Forms Data Binding
 
-        //Dictionary<string, IList<string>> errors = new Dictionary<string, IList<string>>();
-        //public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        BindingSource bindingSource;
 
-        //public IEnumerable GetErrors(string propertyName)
-        //{
-        //    return errors.ContainsKey(propertyName) ?
-        //        errors[propertyName] :
-        //        Enumerable.Empty<string>();
-        //}
+        /// <summary>
+        /// This method will bind a Windows Forms control property to a property path of this component.
+        /// <para>
+        /// This binding behaves correctly for property paths with more than one property (like "UserState.DisplayName"), and
+        /// in the case that any of the properties in the path have a <c>null</c>value.
+        /// </para>
+        /// </summary>
+        /// <param name="propertyPath">Property path of this component to bind to.</param>
+        /// <param name="control">Control to bind.</param>
+        /// <param name="controlPropertyName">Name of the control property to bind.</param>
+        /// <returns>The newly created binding.</returns>
+        public Binding BindControl(string propertyPath, Control control, string controlPropertyName)
+        {
+            // Issues with Windows Forms Data Binding:
+            //
+            // - When specifying a DataMember path (like "ParentProp.ChildProp"):
+            //     - All properties in the path must be defined and typed.
+            //       (Either with native properties or with custom properties defined by implementing ICustomTypeDescriptor).
+            //     - A BindingSource must be used for wrapping the DataSource.
+            //       A plain Binding will not work, as it will throw an ArgumentNullException when trying to register an event with propDesc.AddValueChanged().
+            //
+            // - Windows Forms does not support binding to dynamic objects introduced in .NET 4 (IDynamicMetaObjectProvider, ExpandoObject...)
 
-        //public bool HasErrors
-        //{
-        //    get { return errors.Count > 0; }
-        //}
+            bool isPath = propertyPath.Contains('.');
+            object dataSource;
 
-        //void RaiseError(string propertyName, string error)
-        //{
-        //    errors[propertyName] = new string[] { error };
+            if (isPath)
+            {
+                if (bindingSource == null)
+                {
+                    bindingSource = new BindingSource();
+                    bindingSource.DataSource = this;
+                    // bindingSource.DataMember is not set, as it may be null, which would result in an invalid data source.
+                }
 
-        //    if (ErrorsChanged != null)
-        //        ErrorsChanged(this, new DataErrorsChangedEventArgs(propertyName));
+                dataSource = bindingSource;
+            }
+            else
+            {
+                dataSource = this;
+            }
 
-        //    RaisePropertyChanged(propertyName);
-        //}
+            // DataMember is set here.
+            var binding = control.DataBindings.Add(controlPropertyName, dataSource, propertyPath);
+            binding.DataSourceUpdateMode = DataSourceUpdateMode.OnPropertyChanged;
 
-        //void RemoveError(string propertyName)
-        //{
-        //    errors.Remove(propertyName);
-        //}
+            if (isPath)
+                // The BindingSource does not do an initial update if one of the DataMember properties in its path is null,
+                // that is why an initial update is requested explicitely here.
+                binding.ReadValue();
 
-        //#endregion INotifyDataErrorInfo
+            return binding;
+        }
 
-        //#region IDataErrorInfo
-
-        //string IDataErrorInfo.Error
-        //{
-        //    get
-        //    {
-        //        return HasErrors ? "Error" : "";
-        //    }
-        //}
-
-        //string IDataErrorInfo.this[string columnName]
-        //{
-        //    get
-        //    {
-        //        return GetErrors(columnName).Cast<string>().FirstOrDefault() ?? "";                    
-        //    }
-        //}
-
-        #endregion IDataErrorInfo
+        #endregion Utility for Windows Forms Data Binding
     }
 }

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysUser : StartComponent
+    public class GenesysUser : ActiveGenesysComponent
     {
         GenesysConnection connection;
 

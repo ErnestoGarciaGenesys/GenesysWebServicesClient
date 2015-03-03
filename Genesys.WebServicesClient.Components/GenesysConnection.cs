@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysConnection : StartComponent
+    public class GenesysConnection : ActiveGenesysComponent
     {
         GenesysClient client;
         GenesysEventReceiver eventReceiver;

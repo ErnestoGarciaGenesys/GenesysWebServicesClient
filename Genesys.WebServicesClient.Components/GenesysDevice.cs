@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysDevice : NotifyPropertyChangedComponent
+    public class GenesysDevice : GenesysComponent
     {
         GenesysUser user;
 

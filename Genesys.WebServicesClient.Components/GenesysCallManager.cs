@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysCallManager : NotifyPropertyChangedComponent
+    public class GenesysCallManager : GenesysComponent
     {
         readonly BindingList<GenesysCall> calls = new BindingList<GenesysCall>();
         public BindingList<GenesysCall> Calls { get { return calls; } }
