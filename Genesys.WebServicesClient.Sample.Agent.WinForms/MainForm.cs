@@ -29,12 +29,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
             genesysCallManager.BindControl("ActiveCall.UpdateUserDataCapable", updateUserDataButton, "Enabled");
 
             callsDataGrid.DataSource = genesysCallManager.Calls;
-            genesysUser.ResourceUpdated += (s, e) => UpdateUserDataGrid();
+            genesysUser.Updated += (s, e) => UpdateUserDataGrid();
 
             genesysUser.AvailableChanged += (s, e) => RefreshConnectionComponents();
             RefreshConnectionComponents();
 
-            genesysUser.ResourceUpdated += (s, e) => ObtainOption();
+            genesysUser.Updated += (s, e) => ObtainOption();
         }
 
         void RefreshConnectionComponents()
@@ -80,12 +80,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
             try
             {
-                await genesysConnection.OpenAsync();
-                await genesysUser.ActivateAsync();
+                await genesysConnection.StartAsync();
+                await genesysUser.StartAsync();
             }
             catch (Exception)
             {
-                genesysConnection.Close();
+                genesysConnection.Stop();
                 throw;
             }
         }

@@ -52,7 +52,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             ActiveCallPanel.DataContext = genesysCallManager;
             CallDataGrid.ItemsSource = genesysCallManager.Calls;
 
-            genesysUser.ResourceUpdated += (s, e) =>
+            genesysUser.Updated += (s, e) =>
             {
                 UpdateUserDataGrid();
             };
@@ -112,12 +112,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
             try
             {
-                await genesysConnection.OpenAsync();
-                await genesysUser.ActivateAsync();
+                await genesysConnection.StartAsync();
+                await genesysUser.StartAsync();
             }
             catch (Exception)
             {
-                genesysConnection.Close();
+                genesysConnection.Stop();
                 throw;
             }
         }

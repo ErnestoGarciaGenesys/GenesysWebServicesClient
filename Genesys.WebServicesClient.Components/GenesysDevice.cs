@@ -22,8 +22,7 @@ namespace Genesys.WebServicesClient.Components
                     throw new InvalidOperationException("User can only be set once");
 
                 user = value;
-                value.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
-                value.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
+                value.InternalUpdated += User_InternalUpdated;
             }
         }
 
@@ -48,25 +47,23 @@ namespace Genesys.WebServicesClient.Components
         {
             id = null;
 
-            if (disposing)
-                if (User != null)
-                {
-                    User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
-                    User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
-                }
+            if (disposing && User != null)
+                User.InternalUpdated -= User_InternalUpdated;
 
             base.Dispose(disposing);
         }
 
-        void User_GenesysEventReceivedInternal(GenesysEvent e)
+        void User_InternalUpdated(object sender, InternalUpdatedEventArgs e)
         {
-            if (e.MessageType == "DeviceStateChangeMessage")
-                RefreshDevice(e.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"));
-        }
-
-        void User_ResourceUpdatedInternal(UserResource user)
-        {
-            RefreshDevice(user.devices);
+            if (e.GenesysEvent == null)
+            {
+                RefreshDevice(user.UserResource.devices);
+            }
+            else
+            {
+                if (e.GenesysEvent.MessageType == "DeviceStateChangeMessage")
+                    RefreshDevice(e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"));
+            }
         }
 
         void RefreshDevice(IReadOnlyList<DeviceResource> devices)

@@ -48,7 +48,7 @@
     <Compile Include="GenesysUser.cs" />
     <Compile Include="GenesysCall.cs" />
     <Compile Include="GenesysCallManager.cs" />
-    <Compile Include="ActiveComponent.cs" />
+    <Compile Include="StartComponent.cs" />
     <Compile Include="GenesysWindowsFormsUtil.cs" />
     <Compile Include="NotifyPropertyChangedComponent.cs" />
     <Compile Include="GenesysConnection.cs" />

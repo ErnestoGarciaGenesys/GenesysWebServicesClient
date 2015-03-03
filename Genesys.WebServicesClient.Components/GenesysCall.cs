@@ -66,7 +66,7 @@ namespace Genesys.WebServicesClient.Components
 
         void DoCallOperation(object parameters)
         {
-            callManager.User.Connection.Client.CreateRequest("POST", "/api/v2/me/calls/" + Id, parameters).SendAsync();
+            callManager.User.Connection.InternalClient.CreateRequest("POST", "/api/v2/me/calls/" + Id, parameters).SendAsync();
         }
 
         void DoCallOperation(string operationName)

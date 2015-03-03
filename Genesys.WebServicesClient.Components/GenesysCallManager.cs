@@ -26,8 +26,7 @@ namespace Genesys.WebServicesClient.Components
                     throw new InvalidOperationException("User can only be set once");
 
                 user = value;
-                value.ResourceUpdatedInternal += User_ResourceUpdatedInternal;
-                value.GenesysEventReceivedInternal += User_GenesysEventReceivedInternal;
+                value.InternalUpdated += User_InternalUpdated;
             }
         }
 
@@ -36,23 +35,17 @@ namespace Genesys.WebServicesClient.Components
             if (disposing)
                 if (User != null)
                 {
-                    User.ResourceUpdatedInternal -= User_ResourceUpdatedInternal;
-                    User.GenesysEventReceivedInternal -= User_GenesysEventReceivedInternal;
+                    User.InternalUpdated -= User_InternalUpdated;
                 }
 
          	base.Dispose(disposing);
         }
 
-        void User_ResourceUpdatedInternal(UserResource user)
+        void User_InternalUpdated(object sender, InternalUpdatedEventArgs e)
         {
-            // TODO
-        }
-
-        void User_GenesysEventReceivedInternal(GenesysEvent e)
-        {
-            if (e.MessageType == "CallStateChangeMessage")
+            if (e.GenesysEvent != null && e.GenesysEvent.MessageType == "CallStateChangeMessage")
             {
-                var callResource = e.GetResourceAsType<CallResource>("call");
+                var callResource = e.GenesysEvent.GetResourceAsType<CallResource>("call");
                 var call = Calls.FirstOrDefault(c => c.Id == callResource.id);
                 bool newCall = call == null;
                 if (newCall)
@@ -67,7 +60,7 @@ namespace Genesys.WebServicesClient.Components
                 }
                 else
                 {
-                    call.HandleEvent(e.NotificationType, callResource);
+                    call.HandleEvent(e.GenesysEvent.NotificationType, callResource);
                 }
 
                 if (call.Finished)

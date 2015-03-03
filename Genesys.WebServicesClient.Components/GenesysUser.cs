@@ -11,20 +11,9 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysUser : NotifyPropertyChangedComponent
+    public class GenesysUser : StartComponent
     {
         GenesysConnection connection;
-
-        bool autoRecover = false;
-
-        enum Stage { Idle, Recovering, Available }
-
-        Stage stage = Stage.Idle;
-
-        // Use only during the Recovering stage
-        CancellationTokenSource recoveringCancelToken;
-
-        readonly AwaitingActivate awaitingActivate = new AwaitingActivate();
 
         // Needs disposal
         IEventSubscription eventSubscription;
@@ -33,11 +22,13 @@ namespace Genesys.WebServicesClient.Components
         /// Available means that this object has been correctly initialized and all its
         /// resource properties and methods are available to use.
         /// </summary>
-        public bool Available { get { return stage == Stage.Available; } }
+        public bool Available { get { return activationStage == ActivationStage.Started; } }
 
         public event EventHandler AvailableChanged;
 
-        [Category("Connection")]
+        #region Initialization Properties
+
+        [Category("Initialization")]
         public GenesysConnection Connection
         {
             get { return connection; }
@@ -45,148 +36,55 @@ namespace Genesys.WebServicesClient.Components
             {
                 if (value != connection)
                 {
-                    if (stage != Stage.Idle)
-                        throw new InvalidOperationException("Connection can't be changed while this object is active");
+                    if (activationStage != ActivationStage.Idle)
+                        throw new InvalidOperationException("Property must be set while component is not started");
 
                     if (value == null)
                     {
-                        connection.ConnectionStateChanged -= connection_ConnectionStateChanged;
+                        connection.InternalActivationStageChanged -= genesysConnection_InternalActivationStageChanged;
                         connection = null;
                     }
                     else
                     {
                         connection = value;
-                        connection.ConnectionStateChanged += connection_ConnectionStateChanged;
+                        connection.InternalActivationStageChanged += genesysConnection_InternalActivationStageChanged;
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Loads current object state and subscribes for its events, in order to keep up-to-date.
-        /// This method only triggers the activation procedure, it does not wait for completion, nor
-        /// guarantees a succesful activation.
-        /// After calling this method, this object will be automatically recovered on reconnections
-        /// (when the connection is lost and then open again).
-        /// In order to wait for completion, please use <see cref="ActivateAsync()"/>.
-        /// </summary>
-        public void Activate()
-        {
-            autoRecover = true;
+        #endregion Initialization Properties
 
-            if (stage == Stage.Idle && connection.ConnectionState == ConnectionState.Open)
-            {
-                var dummy = RecoverAsync(background: true); // assignment is for avoiding warning for not using await
-            }
+        protected override Exception CanStart()
+        {
+            if (connection == null)
+                return new InvalidOperationException("Connection property must be set");
+
+            if (connection.InternalActivationStage != ActivationStage.Started)
+                return new ActivationException("Connection is not open");
+
+            return null;
         }
 
-        /// <summary>
-        /// Loads current object state and subscribes for its events, in order to keep up-to-date.
-        /// This method waits for completion of the activation procedure, and will throw an exception if
-        /// activation fails for some reason.
-        /// If this method completes successfully, this object will be automatically recovered on reconnections
-        /// (when the connection is lost and then open again). If the method fails, then automatic recovery will
-        /// not be enabled.
-        /// </summary>
-        /// <exception cref="ActivationException">If object activation failed.</exception>
-        public async Task ActivateAsync()
+        protected override async Task StartImplAsync(CancellationToken cancellationToken)
         {
-            if (stage == Stage.Idle)
-            {
-                if (connection == null)
-                    throw new InvalidOperationException("Connection property must be set");
-
-                if (connection.ConnectionState != ConnectionState.Open)
-                    throw new ActivationException("Connection is not open");
-
-                await RecoverAsync(background: false);
-            }
-            else if (stage == Stage.Recovering)
-            {
-                // Recovering is ongoing. Wait for completion.
-                await awaitingActivate.Await();
-            }
-            else if (stage == Stage.Available)
-            {
-                // Do nothing
-            }
-        }
-
-        async Task RecoverAsync(bool background)
-        {
-            stage = Stage.Recovering;
-
-            try
-            {
-                await RecoverImpl();
-                autoRecover = true;
-                stage = Stage.Available;
-                RaiseAvailableChanged();
-                awaitingActivate.Complete(null);
-            }
-            catch (Exception e)
-            {
-                stage = Stage.Idle;
-                Dispose(true);
-                awaitingActivate.Complete(e);
-
-                if (background)
-                    RaiseRecoveryFailed(new ActivationException(e));
-                else
-                    throw;
-            }
-        }
-
-        public void Deactivate()
-        {
-            if (stage == Stage.Available)
-            {
-                stage = Stage.Idle;
-                RaiseAvailableChanged();
-                Dispose(true);
-            }
-            else if (stage == Stage.Recovering)
-            {
-                recoveringCancelToken.Cancel();
-            }
-        }
-
-        void connection_ConnectionStateChanged(object sender, EventArgs e)
-        {
-            if (Connection.ConnectionState == ConnectionState.Open && autoRecover)
-                Activate();
-
-            if (Connection.ConnectionState == ConnectionState.Close)
-                Deactivate();
-        }
-
-        /// <summary>
-        /// Raised when an automatic recovery (re-activation) of this resource failed.
-        /// </summary>
-        public event EventHandler<RecoveryFailedEventArgs> RecoveryFailed;
-        
-        void RaiseRecoveryFailed(ActivationException e)
-        {
-            if (RecoveryFailed != null)
-                RecoveryFailed(this, new RecoveryFailedEventArgs(e));
-        }
-
-        async Task RecoverImpl()
-        {
-            eventSubscription = Connection.EventReceiver.SubscribeAll(HandleEvent);
+            eventSubscription = Connection.InternalEventReceiver.SubscribeAll(HandleEvent);
 
             // Documentation about recovering existing state:
             // http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
 
-            recoveringCancelToken = new CancellationTokenSource();
-            var request = Connection.Client.CreateRequest("GET", "/api/v2/me?subresources=*");
-            var response = await request.SendAsync<UserResourceResponse>(recoveringCancelToken.Token);
+            var response =
+                await Connection.InternalClient.CreateRequest("GET", "/api/v2/me?subresources=*")
+                    .SendAsync<UserResourceResponse>(cancellationToken);
+            
             LoadResource(response);
             RaiseResourceUpdated();
         }
 
         void LoadResource(IGenesysResponse<UserResourceResponse> response)
         {
+            UserResource = response.AsType.user;
+
             var userResource = (IDictionary<string, object>)response.AsDictionary["user"];
             var untypedSettings = (IDictionary<string, object>)userResource["settings"];
 
@@ -195,9 +93,9 @@ namespace Genesys.WebServicesClient.Components
             Settings = untypedSettings.ToDictionary(kvp => kvp.Key, kvp => (IDictionary<string, object>)kvp.Value);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void StopImpl()
         {
-            if (disposing)
+            if (eventSubscription != null)
             {
                 try
                 {
@@ -210,96 +108,70 @@ namespace Genesys.WebServicesClient.Components
 
                 eventSubscription = null;
             }
-
-            base.Dispose(disposing);
         }
 
-        void RaiseAvailableChanged()
+        void genesysConnection_InternalActivationStageChanged(object sender, EventArgs e)
         {
-            if (AvailableChanged != null)
-                AvailableChanged(this, EventArgs.Empty);
-        }
+            if (connection.InternalActivationStage == ActivationStage.Started && autoRecover)
+                Start();
 
-        public Task ChangeState(string value)
-        {
-            return Connection.Client.CreateRequest("POST", "/api/v2/me", new { operationName = value }).SendAsync();
+            if (connection.InternalActivationStage == ActivationStage.Idle)
+                Stop();
         }
-
-        public event Action<UserResource> ResourceUpdatedInternal;
-        public event Action<GenesysEvent> GenesysEventReceivedInternal;
-        public event EventHandler<EventArgs> ResourceUpdated;
 
         void HandleEvent(object sender, GenesysEvent e)
         {
-            var user = e.GetResourceAsTypeOrNull<IDictionary<string, object>>("user");
+            UserResource = e.GetResourceAsTypeOrNull<UserResource>("user");
 
-            if (GenesysEventReceivedInternal != null)
-                GenesysEventReceivedInternal(e);
+            if (InternalUpdated != null)
+                InternalUpdated(this, new InternalUpdatedEventArgs(e));
+
+            if (Updated != null)
+                Updated(this, EventArgs.Empty);
         }
+
+        public event EventHandler Updated;
+
+        #region Internal
+
+        public UserResource UserResource { get; private set; }
+
+        public event EventHandler<InternalUpdatedEventArgs> InternalUpdated;
 
         // TODO: include event or resource info
         void RaiseResourceUpdated()
         {
-            if (ResourceUpdated != null)
-                ResourceUpdated(this, EventArgs.Empty);
+            if (InternalUpdated != null)
+                InternalUpdated(this, new InternalUpdatedEventArgs());
         }
-        
+
+        #endregion Internal
+
         public IDictionary<string, IDictionary<string, object>> Settings { get; private set; }
+
+        #region Operations
+
+        public Task ChangeState(string value)
+        {
+            return Connection.InternalClient.CreateRequest("POST", "/api/v2/me", new { operationName = value }).SendAsync();
+        }
+
+        #endregion Operations
     }
 
-    public class ActivationException : Exception
+    public class InternalUpdatedEventArgs : EventArgs
     {
-        public ActivationException(Exception innerException)
-            : base(innerException.Message, innerException)
+        public GenesysEvent GenesysEvent { get; private set; }
+
+        public InternalUpdatedEventArgs()
         {
         }
 
-        public ActivationException(string message)
-            : base(message)
+        public InternalUpdatedEventArgs(GenesysEvent e)
+            : this()
         {
+            GenesysEvent = e;
         }
+
     }
-
-    public class RecoveryFailedEventArgs : EventArgs
-    {
-        private readonly ActivationException exception;
-
-        public RecoveryFailedEventArgs(ActivationException exception)
-        {
-            this.exception = exception;
-        }
-
-        public ActivationException ActivationException
-        {
-            get { return exception; }
-        }
-    }
-
-    class AwaitingActivate
-    {
-        readonly IList<TaskCompletionSource<object>> completionSources = new List<TaskCompletionSource<object>>();
-
-        internal async Task Await()
-        {
-            var c = new TaskCompletionSource<object>();
-            completionSources.Add(c);
-            await c.Task;
-        }
-
-        internal void Complete(Exception exc)
-        {
-            foreach (var c in completionSources)
-            {
-                if (exc == null)
-                    c.SetResult(null);
-                else if (exc is OperationCanceledException)
-                    c.SetCanceled();
-                else
-                    c.SetException(exc);
-            }
-
-            completionSources.Clear();
-        }
-    }
-
 }

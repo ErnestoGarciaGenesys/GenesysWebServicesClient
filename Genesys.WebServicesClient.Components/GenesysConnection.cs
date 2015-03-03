@@ -8,37 +8,32 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public enum ConnectionState
-    {
-        Close, Opening, Open
-    }
-
-    public class GenesysConnection : NotifyPropertyChangedComponent
+    public class GenesysConnection : StartComponent
     {
         GenesysClient client;
         GenesysEventReceiver eventReceiver;
-        ConnectionState connectionState;
-        readonly AwaitingActivate awaitingOpen = new AwaitingActivate();
 
-        internal event EventHandler<EventArgs> ConnectionStateChanged;
+        #region Initialization Properties
 
-        [Category("Connection")]
+        [Category("Initialization")]
         public string ServerUri { get; set; }
 
         // Username is spelled altogether (not userName), as in http://docs.genesys.com/Documentation/HTCC/8.5.2/API/GetUserInfo
-        [Category("Connection")]
+        [Category("Initialization")]
         public string Username { get; set; }
 
-        [Category("Connection")]
+        [Category("Initialization")]
         public string Password { get; set; }
 
         int openTimeoutMs = 10000;
-        [Category("Connection"), DefaultValue(10000)]
+        [Category("Initialization"), DefaultValue(10000)]
         public int OpenTimeoutMs
         {
             get { return openTimeoutMs; }
             set { openTimeoutMs = value; }
         }
+
+        #endregion Initialization Properties
 
         /// <summary>
         /// When using this constructor, this instance must be disposed explicitly.
@@ -54,49 +49,24 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        public async Task OpenAsync()
+        protected override async Task StartImplAsync(CancellationToken cancellationToken)
         {
-            if (connectionState == ConnectionState.Close)
+            client = new GenesysClient.Setup()
             {
-                try
-                {
-                    SetConnectionState(ConnectionState.Opening);
-
-                    client = new GenesysClient.Setup()
-                    {
-                        ServerUri = ServerUri,
-                        UserName = Username,
-                        Password = Password,
-                    }
-                    .Create();
-
-                    eventReceiver = client.CreateEventReceiver();
-
-                    await Task.Factory.StartNew(
-                        () => eventReceiver.Open(OpenTimeoutMs),
-                        TaskCreationOptions.LongRunning);
-
-                    SetConnectionState(ConnectionState.Open);
-
-                    awaitingOpen.Complete(null);
-                }
-                catch (Exception e)
-                {
-                    Close();
-                    awaitingOpen.Complete(e);
-                }
+                ServerUri = ServerUri,
+                UserName = Username,
+                Password = Password,
             }
-            else if (connectionState == ConnectionState.Opening)
-            {
-                await awaitingOpen.Await();
-            }
-            else
-            {
-                // Connection is open. Do nothing
-            }
+            .Create();
+
+            eventReceiver = client.CreateEventReceiver();
+
+            await Task.Factory.StartNew(
+                () => eventReceiver.Open(OpenTimeoutMs),
+                TaskCreationOptions.LongRunning);
         }
 
-        public void Close()
+        protected override void StopImpl()
         {
             if (eventReceiver != null)
             {
@@ -109,47 +79,71 @@ namespace Genesys.WebServicesClient.Components
                 client.Dispose();
                 client = null;
             }
-
-            SetConnectionState(ConnectionState.Close);
         }
 
-        void SetConnectionState(ConnectionState s)
+        #region Observable Properties
+
+        [Browsable(false)]
+        public ConnectionState ConnectionState
         {
-            if (connectionState != s)
+            get { return ToState(activationStage); }
+        }
+
+        ConnectionState ToState(ActivationStage s)
+        {
+            switch (s)
             {
-                connectionState = s;
-
-                if (ConnectionStateChanged != null)
-                    ConnectionStateChanged(this, EventArgs.Empty);
-
-                RaisePropertyChanged("ConnectionState");
+                case ActivationStage.Idle:
+                    return ConnectionState.Close;
+                case ActivationStage.Started:
+                    return ConnectionState.Open;
+                case ActivationStage.Starting:
+                default:
+                    return ConnectionState.Opening;
             }
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void OnActivationStageChanged()
         {
-            if (disposing)
-                Close();
+            base.OnActivationStageChanged();
+            RaisePropertyChanged("ConnectionState");
+        }
 
-            base.Dispose(disposing);
+        #endregion Observable Properties
+
+        #region Internal
+
+        [Browsable(false)]
+        public GenesysClient InternalClient
+        {
+            get
+            {
+                if (client == null)
+                    throw new InvalidOperationException("Connection is closed");
+
+                return client;
+            }
         }
 
         [Browsable(false)]
-        public GenesysClient Client
+        public GenesysEventReceiver InternalEventReceiver
         {
-            get { return client; }
+            get
+            {
+                if (client == null)
+                    throw new InvalidOperationException("Connection is closed");
+
+                return eventReceiver;
+            }
         }
 
-        [Browsable(false)]
-        public GenesysEventReceiver EventReceiver
-        {
-            get { return eventReceiver; }
-        }
+        #endregion Internal
+    }
 
-        [ReadOnly(true), Browsable(false)]
-        public ConnectionState ConnectionState
-        {
-            get { return connectionState; }
-        }
+    public enum ConnectionState
+    {
+        Close,
+        Opening,
+        Open
     }
 }

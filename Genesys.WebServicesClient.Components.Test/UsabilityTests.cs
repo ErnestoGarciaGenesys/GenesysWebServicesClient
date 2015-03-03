@@ -26,7 +26,7 @@ namespace Genesys.WebServicesClient.Components.Test
                 Connection = connection
             };
 
-            await connection.OpenAsync();
+            await connection.StartAsync();
             try
             {
                 //user1.Activate();
