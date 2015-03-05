@@ -10,25 +10,26 @@ namespace Genesys.WebServicesClient.Components
 {
     public class NotifyPropertyChangedSupport : INotifyPropertyChanged
     {
-        protected void ChangeAndNotifyProperty(string propertyName, object value)
-        {
-            // TODO: check if value has really changed
-            GetType().GetProperty(propertyName).SetValue(this, value);
-            RaisePropertyChanged(propertyName);
-        }
-
-        // An alternative for notifying from within the setter method. No need to use property names strings this way.
-        protected void RaiseThisPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
-        {
-            RaisePropertyChanged(propertyName);
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void RaisePropertyChanged(string propertyName)
+        protected void RaisePropertyChanged(GenesysComponent.IPostEvents postEvents, string propertyName)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            postEvents.Add(() =>
+            {
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            });
+        }
+        protected void SetPropertyValue(string propertyName, object value)
+        {
+            GetType().GetProperty(propertyName).SetValue(this, value);
+        }
+
+        protected void ChangeAndNotifyProperty(GenesysComponent.IPostEvents postEvents, string propertyName, object value)
+        {
+            // TODO: check if value has really changed? Does not work for collection objects for example.
+            SetPropertyValue(propertyName, value);
+            RaisePropertyChanged(postEvents, propertyName);
         }
 
         #region Utility for Windows Forms Data Binding

@@ -10,25 +10,22 @@ namespace Genesys.WebServicesClient.Components
 {
     public class GenesysDevice : GenesysComponent
     {
-        GenesysUser user;
-
-        [Category("Activation")]
+        [Category("Initialization")]
         public GenesysUser User
         {
-            get { return user; }
+            get { return (GenesysUser)Parent; }
             set
             {
-                if (user != null && user != value)
+                if (Parent != null && Parent != value)
                     throw new InvalidOperationException("User can only be set once");
 
-                user = value;
-                value.InternalUpdated += User_InternalUpdated;
+                Parent = value;
             }
         }
 
         int deviceIndex = 0;
 
-        [Category("Activation")]
+        [Category("Initialization")]
         public int DeviceIndex
         {
             get { return deviceIndex; }
@@ -43,36 +40,26 @@ namespace Genesys.WebServicesClient.Components
 
         string id;
 
-        protected override void Dispose(bool disposing)
-        {
-            id = null;
-
-            if (disposing && User != null)
-                User.InternalUpdated -= User_InternalUpdated;
-
-            base.Dispose(disposing);
-        }
-
-        void User_InternalUpdated(object sender, InternalUpdatedEventArgs e)
+        protected override void OnParentUpdated(InternalUpdatedEventArgs e)
         {
             if (e.GenesysEvent == null)
             {
-                RefreshDevice(user.UserResource.devices);
+                RefreshDevice(e.PostEvents, User.UserResource.devices);
             }
             else
             {
                 if (e.GenesysEvent.MessageType == "DeviceStateChangeMessage")
-                    RefreshDevice(e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"));
+                    RefreshDevice(e.PostEvents, e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"));
             }
         }
 
-        void RefreshDevice(IReadOnlyList<DeviceResource> devices)
+        void RefreshDevice(IPostEvents postEvents, IReadOnlyList<DeviceResource> devices)
         {
             var device = ObtainDevice(devices);
             if (device == null)
                 return;
 
-            ChangeAndNotifyProperty("UserState", device.userState);
+            ChangeAndNotifyProperty(postEvents, "UserState", device.userState);
         }
 
         DeviceResource ObtainDevice(IReadOnlyList<DeviceResource> devices)
@@ -95,9 +82,7 @@ namespace Genesys.WebServicesClient.Components
         }
 
         // [Browsable(false)], needs to be Browsable for enabling data binding to its properties.
-        [Bindable(BindableSupport.Yes),
-        ReadOnly(true),
-        CategoryAttribute("Read-only")]
+        [Bindable(BindableSupport.Yes), ReadOnly(true)]
         public UserState UserState
         {
             get;

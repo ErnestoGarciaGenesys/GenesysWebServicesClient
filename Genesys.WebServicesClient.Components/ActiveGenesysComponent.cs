@@ -12,9 +12,9 @@ namespace Genesys.WebServicesClient.Components
     {
         readonly AwaitingStart awaitingStart = new AwaitingStart();
 
-        protected ActivationStage activationStage = ActivationStage.Idle;
+        ActivationStage activationStage = ActivationStage.Idle;
 
-        protected bool autoRecover = false;
+        protected bool AutoRecover { get; private set; }
 
         // Valid only during the Starting stage
         CancellationTokenSource startCancelToken;
@@ -27,7 +27,7 @@ namespace Genesys.WebServicesClient.Components
         /// </summary>
         public void Start()
         {
-            autoRecover = true;
+            AutoRecover = true;
 
             if (activationStage == ActivationStage.Idle && CanStart() != null)
             {
@@ -72,7 +72,7 @@ namespace Genesys.WebServicesClient.Components
                 SetActivationStage(ActivationStage.Starting);
                 startCancelToken = new CancellationTokenSource();
                 await StartImplAsync(startCancelToken.Token);
-                autoRecover = true;
+                AutoRecover = true;
                 SetActivationStage(ActivationStage.Started);
                 awaitingStart.Complete(null);
             }
@@ -131,18 +131,13 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        [Browsable(false)]
-        public ActivationStage InternalActivationStage
+        protected ActivationStage InternalActivationStage
         {
             get { return activationStage; }
         }
 
-        public event EventHandler InternalActivationStageChanged;
-
         protected virtual void OnActivationStageChanged()
         {
-            if (InternalActivationStageChanged != null)
-                InternalActivationStageChanged(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -155,97 +150,6 @@ namespace Genesys.WebServicesClient.Components
             if (RecoveryFailed != null)
                 RecoveryFailed(this, new RecoveryFailedEventArgs(e));
         }
-
-        ////protected bool isParent = false;
-        //ActiveComponent parentComponent;
-
-        //protected ActiveComponent ParentComponent
-        //{
-        //    get { return parentComponent; }
-        //    set
-        //    {
-        //        parentComponent = value;
-
-        //        //if (parentComponent == null)
-        //        //    parentComponent.AvailableChanged -= parentComponent_AvailableChanged;
-        //        //else
-        //        //    parentComponent.AvailableChanged += parentComponent_AvailableChanged;
-        //    }
-        //}
-
-        //[Obsolete]
-        //bool autoActivate = true;
-
-        ///// <summary>
-        ///// If set to true, this component will be activated automatically right after its parent is activated.
-        ///// in that case there is no need to call <see cref="Initialize()"/> on this component.
-        ///// </summary>
-        //[Obsolete, DefaultValue(true), Category("Activation")]
-        //public virtual bool AutoActivate
-        //{
-        //    get { return autoActivate; }
-        //    set { autoActivate = value; }
-        //}
-
-        //void parentComponent_AvailableChanged(object sender, EventArgs e)
-        //{
-        //    if (parentComponent.Available)
-        //    {
-        //        if (Started)
-        //            Initialize();
-        //    }
-        //    else
-        //    {
-        //        if (Available)
-        //            Dispose(true);
-        //    }
-        //}
-
-        //void Initialize()
-        //{
-        //    if (Available)
-        //        return;
-
-        //    if (!isParent && parentComponent == null)
-        //        throw new InvalidOperationException("parent component not set");
-
-        //    if (!isParent)
-        //        parentComponent.Initialize();
-
-        //    ActivateImpl();
-
-        //    Available = true;
-        //    RaiseActiveChanged();
-        //}
-
-        //public void Deactivate()
-        //{
-        //    if (!Available)
-        //        return;
-
-        //    DeactivateImpl();
-            
-        //    Available = false;
-        //    RaiseActiveChanged();
-        //}
-
-        //void RaiseActiveChanged()
-        //{
-        //    if (AvailableChanged != null)
-        //        AvailableChanged(this, EventArgs.Empty);
-        //}
-
-        //protected override void Dispose(bool disposing)
-        //{
-        //    if (disposing)
-        //        Deactivate();
-
-        //    base.Dispose(disposing);
-        //}
-
-        //protected abstract void ActivateImpl();
-
-        //protected abstract void DeactivateImpl();
 
         class AwaitingStart
         {
@@ -273,13 +177,13 @@ namespace Genesys.WebServicesClient.Components
                 completionSources.Clear();
             }
         }
-    }
 
-    public enum ActivationStage
-    {
-        Idle,
-        Starting,
-        Started
+        protected enum ActivationStage
+        {
+            Idle,
+            Starting,
+            Started
+        }
     }
 
     public class ActivationException : Exception

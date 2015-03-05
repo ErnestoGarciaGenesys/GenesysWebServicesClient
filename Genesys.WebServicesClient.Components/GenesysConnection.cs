@@ -83,10 +83,10 @@ namespace Genesys.WebServicesClient.Components
 
         #region Observable Properties
 
-        [Browsable(false)]
+        [ReadOnly(true)]
         public ConnectionState ConnectionState
         {
-            get { return ToState(activationStage); }
+            get { return ToState(InternalActivationStage); }
         }
 
         ConnectionState ToState(ActivationStage s)
@@ -106,7 +106,12 @@ namespace Genesys.WebServicesClient.Components
         protected override void OnActivationStageChanged()
         {
             base.OnActivationStageChanged();
-            RaisePropertyChanged("ConnectionState");
+            StartHierarchyUpdate();
+        }
+
+        protected override void OnStartHierarchyUpdate(InternalUpdatedEventArgs e)
+        {
+            RaisePropertyChanged(e.PostEvents, "ConnectionState");
         }
 
         #endregion Observable Properties
@@ -130,7 +135,7 @@ namespace Genesys.WebServicesClient.Components
         {
             get
             {
-                if (client == null)
+                if (eventReceiver == null)
                     throw new InvalidOperationException("Connection is closed");
 
                 return eventReceiver;

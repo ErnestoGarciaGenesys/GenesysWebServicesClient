@@ -13,8 +13,6 @@ namespace Genesys.WebServicesClient.Components
 {
     public class GenesysUser : ActiveGenesysComponent
     {
-        GenesysConnection connection;
-
         // Needs disposal
         IEventSubscription eventSubscription;
 
@@ -22,7 +20,7 @@ namespace Genesys.WebServicesClient.Components
         /// Available means that this object has been correctly initialized and all its
         /// resource properties and methods are available to use.
         /// </summary>
-        public bool Available { get { return activationStage == ActivationStage.Started; } }
+        public bool Available { get { return InternalActivationStage == ActivationStage.Started; } }
 
         public event EventHandler AvailableChanged;
 
@@ -31,25 +29,13 @@ namespace Genesys.WebServicesClient.Components
         [Category("Initialization")]
         public GenesysConnection Connection
         {
-            get { return connection; }
+            get { return (GenesysConnection)Parent; }
             set
             {
-                if (value != connection)
-                {
-                    if (activationStage != ActivationStage.Idle)
-                        throw new InvalidOperationException("Property must be set while component is not started");
-
-                    if (value == null)
-                    {
-                        connection.InternalActivationStageChanged -= genesysConnection_InternalActivationStageChanged;
-                        connection = null;
-                    }
-                    else
-                    {
-                        connection = value;
-                        connection.InternalActivationStageChanged += genesysConnection_InternalActivationStageChanged;
-                    }
-                }
+                if (InternalActivationStage != ActivationStage.Idle)
+                    throw new InvalidOperationException("Property must be set while component is not started");
+                
+                Parent = value;
             }
         }
 
@@ -57,10 +43,10 @@ namespace Genesys.WebServicesClient.Components
 
         protected override Exception CanStart()
         {
-            if (connection == null)
+            if (Connection == null)
                 return new InvalidOperationException("Connection property must be set");
 
-            if (connection.InternalActivationStage != ActivationStage.Started)
+            if (Connection.ConnectionState != ConnectionState.Open)
                 return new ActivationException("Connection is not open");
 
             return null;
@@ -78,7 +64,7 @@ namespace Genesys.WebServicesClient.Components
                     .SendAsync<UserResourceResponse>(cancellationToken);
             
             LoadResource(response);
-            RaiseResourceUpdated();
+            StartHierarchyUpdate();
         }
 
         void LoadResource(IGenesysResponse<UserResourceResponse> response)
@@ -110,40 +96,33 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        void genesysConnection_InternalActivationStageChanged(object sender, EventArgs e)
+        protected override void OnParentUpdated(InternalUpdatedEventArgs e)
         {
-            if (connection.InternalActivationStage == ActivationStage.Started && autoRecover)
+            if (Connection.ConnectionState == ConnectionState.Open && AutoRecover)
                 Start();
 
-            if (connection.InternalActivationStage == ActivationStage.Idle)
+            if (Connection.ConnectionState == ConnectionState.Close)
                 Stop();
         }
 
-        void HandleEvent(object sender, GenesysEvent e)
+        void HandleEvent(object sender, GenesysEvent genesysEvent)
         {
-            UserResource = e.GetResourceAsTypeOrNull<UserResource>("user");
-
-            if (InternalUpdated != null)
-                InternalUpdated(this, new InternalUpdatedEventArgs(e));
-
-            if (Updated != null)
-                Updated(this, EventArgs.Empty);
+            UserResource = genesysEvent.GetResourceAsTypeOrNull<UserResource>("user");
+            StartHierarchyUpdate(genesysEvent);
+            RaiseUpdated();
         }
 
         public event EventHandler Updated;
 
+        void RaiseUpdated()
+        {
+            if (Updated != null)
+                Updated(this, EventArgs.Empty);
+        }
+
         #region Internal
 
         public UserResource UserResource { get; private set; }
-
-        public event EventHandler<InternalUpdatedEventArgs> InternalUpdated;
-
-        // TODO: include event or resource info
-        void RaiseResourceUpdated()
-        {
-            if (InternalUpdated != null)
-                InternalUpdated(this, new InternalUpdatedEventArgs());
-        }
 
         #endregion Internal
 
@@ -157,21 +136,5 @@ namespace Genesys.WebServicesClient.Components
         }
 
         #endregion Operations
-    }
-
-    public class InternalUpdatedEventArgs : EventArgs
-    {
-        public GenesysEvent GenesysEvent { get; private set; }
-
-        public InternalUpdatedEventArgs()
-        {
-        }
-
-        public InternalUpdatedEventArgs(GenesysEvent e)
-            : this()
-        {
-            GenesysEvent = e;
-        }
-
     }
 }
