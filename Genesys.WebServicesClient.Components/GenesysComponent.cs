@@ -109,11 +109,6 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        public interface IPostEvents
-        {
-            void Add(Action a);
-        }
-
         class PostEventsImpl : IPostEvents
         {
             List<Action> list = new List<Action>();

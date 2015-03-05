@@ -12,7 +12,12 @@ namespace Genesys.WebServicesClient.Components
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void RaisePropertyChanged(GenesysComponent.IPostEvents postEvents, string propertyName)
+        protected interface IPostEvents
+        {
+            void Add(Action a);
+        }
+
+        protected void RaisePropertyChanged(IPostEvents postEvents, string propertyName)
         {
             postEvents.Add(() =>
             {
@@ -25,7 +30,7 @@ namespace Genesys.WebServicesClient.Components
             GetType().GetProperty(propertyName).SetValue(this, value);
         }
 
-        protected void ChangeAndNotifyProperty(GenesysComponent.IPostEvents postEvents, string propertyName, object value)
+        protected void ChangeAndNotifyProperty(IPostEvents postEvents, string propertyName, object value)
         {
             // TODO: check if value has really changed? Does not work for collection objects for example.
             SetPropertyValue(propertyName, value);
