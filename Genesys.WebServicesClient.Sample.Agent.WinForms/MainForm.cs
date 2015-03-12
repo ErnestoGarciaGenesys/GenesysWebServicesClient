@@ -75,7 +75,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
         async void connectButton_Click(object sender, EventArgs e)
         {
-            genesysConnection.Username = usernameTextBox.Text;
+            genesysConnection.UserName = usernameTextBox.Text;
             genesysConnection.Password = passwordTextBox.Text;
 
             try

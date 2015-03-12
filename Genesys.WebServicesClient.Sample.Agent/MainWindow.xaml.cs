@@ -47,6 +47,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                 };
 
             ConnectionPanel.DataContext = genesysConnection;
+            UserPanel.DataContext = genesysUser;
             DevicePanel.DataContext = genesysDevice;
             CallsPanel.DataContext = genesysCallManager;
             ActiveCallPanel.DataContext = genesysCallManager;
@@ -107,7 +108,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         async void OpenConnection_Click(object sender, RoutedEventArgs e)
         {
             genesysConnection.ServerUri = ServerUri.Text;
-            genesysConnection.Username = Username.Text;
+            genesysConnection.UserName = Username.Text;
             genesysConnection.Password = Password.Text;
 
             try

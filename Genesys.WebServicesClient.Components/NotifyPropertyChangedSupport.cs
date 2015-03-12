@@ -12,14 +12,14 @@ namespace Genesys.WebServicesClient.Components
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected interface IPostEvents
+        public interface IDelayedEvents
         {
             void Add(Action a);
         }
 
-        protected void RaisePropertyChanged(IPostEvents postEvents, string propertyName)
+        protected void RaisePropertyChanged(IDelayedEvents ev, string propertyName)
         {
-            postEvents.Add(() =>
+            ev.Add(() =>
             {
                 if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
@@ -30,11 +30,11 @@ namespace Genesys.WebServicesClient.Components
             GetType().GetProperty(propertyName).SetValue(this, value);
         }
 
-        protected void ChangeAndNotifyProperty(IPostEvents postEvents, string propertyName, object value)
+        protected void ChangeAndNotifyProperty(IDelayedEvents ev, string propertyName, object value)
         {
             // TODO: check if value has really changed? Does not work for collection objects for example.
             SetPropertyValue(propertyName, value);
-            RaisePropertyChanged(postEvents, propertyName);
+            RaisePropertyChanged(ev, propertyName);
         }
 
         #region Utility for Windows Forms Data Binding

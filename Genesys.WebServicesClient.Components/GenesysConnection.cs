@@ -18,9 +18,8 @@ namespace Genesys.WebServicesClient.Components
         [Category("Initialization")]
         public string ServerUri { get; set; }
 
-        // Username is spelled altogether (not userName), as in http://docs.genesys.com/Documentation/HTCC/8.5.2/API/GetUserInfo
         [Category("Initialization")]
-        public string Username { get; set; }
+        public string UserName { get; set; }
 
         [Category("Initialization")]
         public string Password { get; set; }
@@ -54,7 +53,7 @@ namespace Genesys.WebServicesClient.Components
             client = new GenesysClient.Setup()
             {
                 ServerUri = ServerUri,
-                UserName = Username,
+                UserName = UserName,
                 Password = Password,
             }
             .Create();
@@ -106,12 +105,8 @@ namespace Genesys.WebServicesClient.Components
         protected override void OnActivationStageChanged()
         {
             base.OnActivationStageChanged();
-            StartHierarchyUpdate();
-        }
-
-        protected override void OnStartHierarchyUpdate(InternalUpdatedEventArgs e)
-        {
-            RaisePropertyChanged(e.PostEvents, "ConnectionState");
+            StartHierarchyUpdate(doLast: postEvents =>
+                RaisePropertyChanged(postEvents, "ConnectionState"));
         }
 
         #endregion Observable Properties

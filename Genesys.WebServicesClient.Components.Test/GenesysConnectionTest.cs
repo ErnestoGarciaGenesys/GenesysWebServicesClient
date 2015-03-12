@@ -22,7 +22,7 @@ namespace Genesys.WebServicesClient.Components.Test
 
             connection.ServerUri = "http://testUri";
             connection.Password = "testPassword";
-            connection.Username = "testUsername";
+            connection.UserName = "testUsername";
 
             user.Connection = connection;
 

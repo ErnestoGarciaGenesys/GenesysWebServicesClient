@@ -48,7 +48,7 @@ namespace Genesys.WebServicesClient.Components
             readOnlyCapabilities = new ReadOnlyCollection<string>(capabilities);
         }
 
-        internal void HandleEvent(IPostEvents postEvents, string notificationType, CallResource callResource)
+        internal void HandleEvent(IDelayedEvents postEvents, string notificationType, CallResource callResource)
         {
             bool userDataChanged = userData.HandleEvent(notificationType, callResource);
             if (userDataChanged)
@@ -74,7 +74,7 @@ namespace Genesys.WebServicesClient.Components
             DoCallOperation(new { operationName = operationName });
         }
 
-        void UpdateCapableProperties(IPostEvents postEvents, IList<string> capabilities)
+        void UpdateCapableProperties(IDelayedEvents postEvents, IList<string> capabilities)
         {
             foreach (var op in callOperations)
             {

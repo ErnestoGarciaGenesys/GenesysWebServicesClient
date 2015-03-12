@@ -12,7 +12,7 @@ namespace Genesys.WebServicesClient.Components.Test
             var connection = new GenesysConnection()
             {
                 ServerUri = "http://localhost:5088",
-                Username = "paveld@redwings.com",
+                UserName = "paveld@redwings.com",
                 Password = "password",
             };
 
@@ -45,7 +45,7 @@ namespace Genesys.WebServicesClient.Components.Test
             var connection = new GenesysConnection()
             {
                 ServerUri = "http://localhost:5088",
-                Username = "paveld@redwings.com",
+                UserName = "paveld@redwings.com",
                 Password = "password",
             };
 

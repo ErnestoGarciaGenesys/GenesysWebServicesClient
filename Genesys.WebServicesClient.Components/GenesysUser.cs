@@ -62,21 +62,11 @@ namespace Genesys.WebServicesClient.Components
             var response =
                 await Connection.InternalClient.CreateRequest("GET", "/api/v2/me?subresources=*")
                     .SendAsync<UserResourceResponse>(cancellationToken);
-            
-            LoadResource(response);
-            StartHierarchyUpdate();
-        }
 
-        void LoadResource(IGenesysResponse<UserResourceResponse> response)
-        {
-            UserResource = response.AsType.user;
-
-            var userResource = (IDictionary<string, object>)response.AsDictionary["user"];
-            var untypedSettings = (IDictionary<string, object>)userResource["settings"];
-
-            // Concretizing dictionary type to a dictionary of dictionaries,
-            // because Settings contains sections, which contain key-value pairs.
-            Settings = untypedSettings.ToDictionary(kvp => kvp.Key, kvp => (IDictionary<string, object>)kvp.Value);
+            StartHierarchyUpdate(doLast =>
+                UpdateResource(doLast,
+                    (IDictionary<string, object>)response.AsDictionary["user"],
+                    response.AsType.user));
         }
 
         protected override void StopImpl()
@@ -107,17 +97,65 @@ namespace Genesys.WebServicesClient.Components
 
         void HandleEvent(object sender, GenesysEvent genesysEvent)
         {
-            UserResource = genesysEvent.GetResourceAsTypeOrNull<UserResource>("user");
-            StartHierarchyUpdate(genesysEvent);
-            RaiseUpdated();
+            if (genesysEvent.Data.ContainsKey("user"))
+            {
+                StartHierarchyUpdate(genesysEvent, doLast =>
+                    UpdateResource(doLast,
+                        genesysEvent.GetResourceAsType<IDictionary<string, object>>("user"),
+                        genesysEvent.GetResourceAsType<UserResource>("user")));
+            }
+            else
+            {
+                StartHierarchyUpdate(genesysEvent, doLast => RaiseUpdated(doLast));
+            }
         }
 
-        public event EventHandler Updated;
-
-        void RaiseUpdated()
+        void UpdateResource(IDelayedEvents doLast, IDictionary<string, object> untypedResource, UserResource typedResource)
         {
-            if (Updated != null)
-                Updated(this, EventArgs.Empty);
+            var oldResource = UserResourceData;
+
+            foreach (var attrib in untypedResource)
+            {
+                if (AttributeChanged(attrib.Key, attrib.Value, oldResource))
+                    RaisePropertyChanged(doLast, FirstToUpper(attrib.Key));
+            }
+
+            RaiseUpdated(doLast);
+
+            UserResource = typedResource;
+            UserResourceData = untypedResource;
+
+            var untypedSettings = (IDictionary<string, object>)untypedResource["settings"];
+
+            // Concretizing dictionary type to a dictionary of dictionaries,
+            // because Settings contains sections, which contain key-value pairs.
+            Settings = untypedSettings.ToDictionary(kvp => kvp.Key, kvp => (IDictionary<string, object>)kvp.Value);
+        }
+
+        static bool AttributeChanged(string attribName, object newVal, IDictionary<string, object> oldRes)
+        {
+            if (oldRes == null)
+                return true;
+
+            object oldVal;
+            if (oldRes.TryGetValue(attribName, out oldVal))
+            {
+                if (newVal is string && oldVal is string)
+                {
+                    // compare for strings
+                    return (string)newVal != (string)oldVal;
+                }
+                else
+                {
+                    // assume changed for any other types not considered for comparison
+                    return true;
+                }
+            }
+            else
+            {
+                // there was no previous value
+                return true;
+            }
         }
 
         #region Internal
@@ -125,6 +163,17 @@ namespace Genesys.WebServicesClient.Components
         public UserResource UserResource { get; private set; }
 
         #endregion Internal
+
+        public event EventHandler Updated;
+
+        void RaiseUpdated(IDelayedEvents postEvents)
+        {
+            postEvents.Add(() =>
+            {
+                if (Updated != null)
+                    Updated(this, EventArgs.Empty);
+            });
+        }
 
         public IDictionary<string, IDictionary<string, object>> Settings { get; private set; }
 
@@ -136,5 +185,61 @@ namespace Genesys.WebServicesClient.Components
         }
 
         #endregion Operations
+
+        #region Attributes
+
+        public IDictionary<string, object> UserResourceData { get; private set; }
+
+
+        object GetAttributeByName(string attributeName)
+        {
+            if (UserResourceData == null)
+                return null;
+
+            object valueObj;
+            UserResourceData.TryGetValue(attributeName, out valueObj);
+            return valueObj;
+        }
+
+        object GetAttribute([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        {
+            return GetAttributeByName(FirstToLower(propertyName));
+        }
+
+        //{
+        //    "userName": "a",
+        //    "id": "16e299d4f1844ca09b30f96ccd921c53",
+        //    "lastName": "a",
+        //    "firstName": "a",
+        //    "roles": [
+        //        "ROLE_AGENT"
+        //    ],
+        //    "devices": [],
+        //    "skills": [],
+        //    "interactions": [],
+        //    "channelStates": []
+        //}
+
+        public string UserName { get { return GetAttribute() as string; } }
+
+        public string Id { get { return GetAttribute() as string; } }
+
+        public string LastName { get { return GetAttribute() as string; } }
+
+        public string FirstName { get { return GetAttribute() as string; } }
+
+        public IEnumerable<string> Roles { get { return GetAttribute() as IEnumerable<string>; } }
+
+        #endregion Attributes
+
+        static string FirstToLower(string s)
+        {
+            return Char.ToLowerInvariant(s[0]) + s.Substring(1);
+        }
+
+        static string FirstToUpper(string s)
+        {
+            return Char.ToUpperInvariant(s[0]) + s.Substring(1);
+        }
     }
 }

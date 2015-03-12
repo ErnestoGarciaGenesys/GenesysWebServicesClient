@@ -73,43 +73,41 @@ namespace Genesys.WebServicesClient.Components
                 InternalUpdated(this, e);
         }
 
-        protected void StartHierarchyUpdate(GenesysEvent genesysEvent)
+        protected void StartHierarchyUpdate(GenesysEvent genesysEvent, Action<IDelayedEvents> lastEvents)
         {
-            var postEvents = new PostEventsImpl();
-            var eventArgs = new InternalUpdatedEventArgs(postEvents, genesysEvent);
-            OnStartHierarchyUpdate(eventArgs);
+            var last = new DelayedEventsImpl();
+            lastEvents(last);
+            var delayed = new DelayedEventsImpl();
+            var eventArgs = new InternalUpdatedEventArgs(delayed, genesysEvent);
             RaiseInternalUpdated(eventArgs);
-            postEvents.Run();
+            delayed.Run();
+            last.Run();
         }
 
-        protected void StartHierarchyUpdate()
+        protected void StartHierarchyUpdate(Action<IDelayedEvents> doLast)
         {
-            StartHierarchyUpdate(null);
-        }
-
-        protected virtual void OnStartHierarchyUpdate(InternalUpdatedEventArgs e)
-        {
+            StartHierarchyUpdate(null, doLast);
         }
 
         public class InternalUpdatedEventArgs : EventArgs
         {
             public GenesysEvent GenesysEvent { get; private set; }
 
-            public IPostEvents PostEvents { get; private set; }
+            public IDelayedEvents DelayedEvents { get; private set; }
 
-            public InternalUpdatedEventArgs(IPostEvents postEvents)
+            public InternalUpdatedEventArgs(IDelayedEvents delayedEvents)
             {
-                PostEvents = postEvents;
+                DelayedEvents = delayedEvents;
             }
 
-            public InternalUpdatedEventArgs(IPostEvents postEvents, GenesysEvent e)
-                : this(postEvents)
+            public InternalUpdatedEventArgs(IDelayedEvents delayedEvents, GenesysEvent e)
+                : this(delayedEvents)
             {
                 GenesysEvent = e;
             }
         }
 
-        class PostEventsImpl : IPostEvents
+        class DelayedEventsImpl : IDelayedEvents
         {
             List<Action> list = new List<Action>();
 

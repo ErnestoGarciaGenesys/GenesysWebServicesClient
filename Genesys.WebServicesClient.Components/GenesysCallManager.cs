@@ -41,7 +41,7 @@ namespace Genesys.WebServicesClient.Components
                 }
                 else
                 {
-                    call.HandleEvent(e.PostEvents, e.GenesysEvent.NotificationType, callResource);
+                    call.HandleEvent(e.DelayedEvents, e.GenesysEvent.NotificationType, callResource);
                 }
 
                 if (call.Finished)
@@ -50,7 +50,7 @@ namespace Genesys.WebServicesClient.Components
                 }
 
                 // Quick temporary solution: always notify changes on ActiveCall
-                RaisePropertyChanged(e.PostEvents, "ActiveCall");
+                RaisePropertyChanged(e.DelayedEvents, "ActiveCall");
             }
         }
 
