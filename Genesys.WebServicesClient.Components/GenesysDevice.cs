@@ -10,6 +10,8 @@ namespace Genesys.WebServicesClient.Components
 {
     public class GenesysDevice : GenesysComponent
     {
+        #region Initialization Properties
+
         [Category("Initialization")]
         public GenesysUser User
         {
@@ -38,47 +40,56 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
+        #endregion Initialization Properties
+
         string id;
 
         protected override void OnParentUpdated(InternalUpdatedEventArgs e)
         {
             if (e.GenesysEvent == null)
             {
-                RefreshDevice(e.DelayedEvents, User.UserResource.devices);
+                RefreshDevice(e.DelayedEvents,
+                    User.UserResource.devices,
+                    (object[])User.ResourceData["devices"]);
             }
             else
             {
                 if (e.GenesysEvent.MessageType == "DeviceStateChangeMessage")
-                    RefreshDevice(e.DelayedEvents, e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"));
+                    RefreshDevice(e.DelayedEvents,
+                        e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"),
+                        e.GenesysEvent.GetResourceAsType<object[]>("devices"));
             }
         }
 
-        void RefreshDevice(IDelayedEvents postEvents, IReadOnlyList<DeviceResource> devices)
-        {
-            var device = ObtainDevice(devices);
-            if (device == null)
-                return;
-
-            ChangeAndNotifyProperty(postEvents, "UserState", device.userState);
-        }
-
-        DeviceResource ObtainDevice(IReadOnlyList<DeviceResource> devices)
+        void RefreshDevice(IDelayedEvents doLast, IReadOnlyList<DeviceResource> devices, object[] devicesData)
         {
             DeviceResource device = null;
+            IDictionary<string, object> newDeviceData = null;
             if (id == null)
             {
                 if (devices.Count() > 0)
                 {
                     device = devices[deviceIndex];
                     id = device.id;
+                    newDeviceData = (IDictionary<string, object>)devicesData[deviceIndex];
                 }
             }
             else
             {
-                device = devices.FirstOrDefault(d => id == d.id);
+                var i = devices.ToList().FindIndex(d => id == d.id);
+                if (i >= 0)
+                {
+                    device = devices[i];
+                    newDeviceData = (IDictionary<string, object>)devicesData[i];
+                }
             }
 
-            return device;
+            if (device == null)
+                return;
+
+            UpdateAttributes(doLast, newDeviceData);
+
+            ChangeAndNotifyProperty(doLast, "UserState", device.userState);
         }
 
         // [Browsable(false)], needs to be Browsable for enabling data binding to its properties.
@@ -88,5 +99,33 @@ namespace Genesys.WebServicesClient.Components
             get;
             private set;
         }
+
+        #region Attributes
+
+        //"id": "bf78972f-a0f3-44da-9ca6-0a9a7ec5dbea",
+        //"deviceState": "Active",
+        //"userState": {
+        //    "state": "LoggedIn"
+        //},
+        //"phoneNumber": "1000",
+        //"e164Number": "1000",
+        //"telephonyNetwork": "Private",
+        //"doNotDisturb": "Off",
+        //"voiceEnvironmentUri": "http://192.168.154.128/api/v2/voice-environments/d0973689-7156-4e84-bfa5-d78f6629d82c",
+        //"capabilities": ["DoNotDisturbOn", "ForwardCallsOn"]
+
+        public string Id { get { return GetAttribute() as string; } }
+
+        public string DeviceState { get { return GetAttribute() as string; } }
+
+        public string PhoneNumber { get { return GetAttribute() as string; } }
+
+        public string E164Number { get { return GetAttribute() as string; } }
+
+        public string TelephonyNetwork { get { return GetAttribute() as string; } }
+
+        public string DoNotDisturb { get { return GetAttribute() as string; } }
+
+        #endregion Attributes
     }
 }

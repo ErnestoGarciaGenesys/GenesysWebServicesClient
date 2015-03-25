@@ -56,9 +56,9 @@
             this.userDataGrid = new System.Windows.Forms.PropertyGrid();
             this.optionLabel = new System.Windows.Forms.Label();
             this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysCallManager();
-            this.genesysDevice = new Genesys.WebServicesClient.Components.GenesysDevice();
-            this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
             this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
+            this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
+            this.genesysDevice = new Genesys.WebServicesClient.Components.GenesysDevice();
             ((System.ComponentModel.ISupportInitialize)(this.callsDataGrid)).BeginInit();
             this.userGroupBox.SuspendLayout();
             this.deviceGroupBox.SuspendLayout();
@@ -328,10 +328,9 @@
             // 
             this.genesysCallManager.User = this.genesysUser;
             // 
-            // genesysDevice
+            // genesysUser
             // 
-            this.genesysDevice.DeviceIndex = 0;
-            this.genesysDevice.User = this.genesysUser;
+            this.genesysUser.Connection = this.genesysConnection;
             // 
             // genesysConnection
             // 
@@ -339,9 +338,10 @@
             this.genesysConnection.ServerUri = global::Genesys.WebServicesClient.Sample.Agent.WinForms.Properties.Settings.Default.GenesysServerUri;
             this.genesysConnection.UserName = "";
             // 
-            // genesysUser
+            // genesysDevice
             // 
-            this.genesysUser.Connection = this.genesysConnection;
+            this.genesysDevice.DeviceIndex = 0;
+            this.genesysDevice.User = this.genesysUser;
             // 
             // MainForm
             // 

@@ -10,6 +10,90 @@ namespace Genesys.WebServicesClient.Components
 {
     public class NotifyPropertyChangedSupport : INotifyPropertyChanged
     {
+        #region Attributes
+
+        public IDictionary<string, object> ResourceData { get; set; }
+
+        protected object GetAttributeByName(string attributeName)
+        {
+            if (ResourceData == null)
+                return null;
+
+            object valueObj;
+            ResourceData.TryGetValue(attributeName, out valueObj);
+            return valueObj;
+        }
+
+        protected object GetAttribute([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        {
+            return GetAttributeByName(FirstToLower(propertyName));
+        }
+
+        protected void UpdateAttributes(IDelayedEvents doLast, IDictionary<string, object> newResourceData)
+        {
+            var oldResource = ResourceData;
+
+            foreach (var attrib in newResourceData)
+            {
+                if (AttributeChanged(attrib.Key, attrib.Value, oldResource))
+                    RaisePropertyChanged(doLast, FirstToUpper(attrib.Key));
+            }
+
+            RaiseUpdated(doLast);
+            ResourceData = newResourceData;
+        }
+
+        static bool AttributeChanged(string attribName, object newVal, IDictionary<string, object> oldRes)
+        {
+            if (oldRes == null)
+                return true;
+
+            object oldVal;
+            if (oldRes.TryGetValue(attribName, out oldVal))
+            {
+                if (newVal is string && oldVal is string)
+                {
+                    // compare for strings
+                    return (string)newVal != (string)oldVal;
+                }
+                else
+                {
+                    // assume changed for any other types not considered for comparison
+                    return true;
+                }
+            }
+            else
+            {
+                // there was no previous value
+                return true;
+            }
+        }
+
+        public event EventHandler Updated;
+
+        protected void RaiseUpdated(IDelayedEvents postEvents)
+        {
+            postEvents.Add(() =>
+            {
+                if (Updated != null)
+                    Updated(this, EventArgs.Empty);
+            });
+        }
+
+        static string FirstToLower(string s)
+        {
+            return Char.ToLowerInvariant(s[0]) + s.Substring(1);
+        }
+
+        static string FirstToUpper(string s)
+        {
+            return Char.ToUpperInvariant(s[0]) + s.Substring(1);
+        }
+
+        #endregion Attributes
+
+        #region INotifyPropertyChanged
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public interface IDelayedEvents
@@ -36,6 +120,8 @@ namespace Genesys.WebServicesClient.Components
             SetPropertyValue(propertyName, value);
             RaisePropertyChanged(ev, propertyName);
         }
+
+        #endregion INotifyPropertyChanged
 
         #region Utility for Windows Forms Data Binding
 
