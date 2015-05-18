@@ -97,12 +97,12 @@ namespace Genesys.WebServicesClient.Sample.Agent.WinForms
 
         async void readyButton_Click(object sender, EventArgs e)
         {
-            await genesysUser.ChangeState("Ready");
+            await genesysUser.DoOperation("Ready");
         }
 
         async void notReadyButton_Click(object sender, EventArgs e)
         {
-            await genesysUser.ChangeState("NotReady");
+            await genesysUser.DoOperation("NotReady");
         }
 
         void answerButton_Click(object sender, EventArgs e)

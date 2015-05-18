@@ -66,9 +66,9 @@ namespace Genesys.WebServicesClient
             return CreateRequest(httpMethod, uri, null);
         }
 
-        public GenesysEventReceiver CreateEventReceiver()
+        public GenesysEventReceiver CreateEventReceiver(GenesysEventReceiver.Setup setup)
         {
-            return new GenesysEventReceiver(this);
+            return new GenesysEventReceiver(this, setup);
         }
 
         public HttpClient HttpClient

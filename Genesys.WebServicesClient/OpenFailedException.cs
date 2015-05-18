@@ -7,8 +7,13 @@ namespace Genesys.WebServicesClient
 {
     public class OpenFailedException : Exception
     {
-        public OpenFailedException(string message):
-            base(message)
+        public OpenFailedException(string message, Exception innerException) :
+            base(message, innerException)
+        {
+        }
+
+        public OpenFailedException(string message) :
+            this(message, null)
         {
         }
     }

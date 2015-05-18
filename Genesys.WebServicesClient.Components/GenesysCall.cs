@@ -93,6 +93,7 @@ namespace Genesys.WebServicesClient.Components
             "Hangup",
             "InitiateTransfer",
             "CompleteTransfer",
+            "AttachUserData",
             "UpdateUserData",
         };
 
@@ -116,6 +117,17 @@ namespace Genesys.WebServicesClient.Components
         public void CompleteTransfer() { DoCallOperation("CompleteTransfer"); }
         public bool CompleteTransferCapable { get; private set; }
 
+        public void AttachUserData(object obj)
+        {
+            DoCallOperation(new
+            {
+                operationName = "AttachUserData",
+                userData = obj
+            });
+        }
+
+        public bool AttachUserDataCapable { get; private set; }
+
         public void UpdateUserData(object obj)
         {
             DoCallOperation(new
@@ -127,6 +139,6 @@ namespace Genesys.WebServicesClient.Components
 
         public bool UpdateUserDataCapable { get; private set; }
 
-        public IList<string> Participants { get; private set; }
+        public IList<object> Participants { get; private set; }
     }
 }

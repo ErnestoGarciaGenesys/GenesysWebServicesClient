@@ -9,7 +9,7 @@
         <properties:Settings x:Key="Settings" />
     </Window.Resources>
     <Grid>
-        <GroupBox x:Name="ConnectionPanel" Header="Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="199" Width="224">
+        <GroupBox x:Name="ConnectionPanel" Header="Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="177" Width="224">
             <Grid>
                 <Label Content="Server URI" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,8,0,0"/>
                 <TextBox x:Name="ServerUri" Text="{Binding Default.GenesysServerUri, Source={StaticResource Settings}}" VerticalAlignment="Top" Margin="70,10,10,0" Height="23"/>
@@ -18,17 +18,18 @@
                 <Label Content="Password" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,64,0,0"/>
                 <TextBox x:Name="Password" Text="{Binding Default.Password, Source={StaticResource Settings}}" VerticalAlignment="Top" Margin="70,66,10,0" Height="23"/>
                 <Label Content="{Binding ConnectionState, FallbackValue=(Unknown State)}" VerticalAlignment="Top" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="0,100,0,0"/>
-                <Grid Margin="28,0,28,16" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <Grid Margin="28,0,28,13" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                     <Button Content="Open" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="OpenConnection_Click"/>
                     <Button Content="Close" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="75" Click="CloseConnection_Click"/>
                 </Grid>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="UserPanel" Header="User" HorizontalAlignment="Left" Margin="10,214,0,0" VerticalAlignment="Top" Width="224" Height="106">
+        <GroupBox x:Name="UserPanel" Header="User" HorizontalAlignment="Left" Margin="10,192,0,0" VerticalAlignment="Top" Width="224" Height="128">
             <Grid>
-                <Label Content="{Binding UserName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="UserName: {0}" VerticalAlignment="Top"/>
-                <Label Content="{Binding FirstName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="FirstName: {0}" VerticalAlignment="Top" Margin="0,26,0,0"/>
-                <Label Content="{Binding LastName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="LastName: {0}" VerticalAlignment="Top" Margin="0,52,0,0"/>
+                <Label Content="{Binding Available, FallbackValue=Not available, TargetNullValue=Not available}" ContentStringFormat="Service availability: {0}" VerticalAlignment="Top" Margin="0,0,0,0"/>
+                <Label Content="{Binding UserName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="UserName: {0}" VerticalAlignment="Top" Margin="0,29,0,0"/>
+                <Label Content="{Binding FirstName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="FirstName: {0}" VerticalAlignment="Top" Margin="0,55,0,0"/>
+                <Label Content="{Binding LastName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="LastName: {0}" VerticalAlignment="Top" Margin="0,81,0,0"/>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="DevicePanel" Header="Device" HorizontalAlignment="Left" Margin="10,325,0,10" Width="224">
@@ -40,22 +41,31 @@
                 <Grid Margin="28,122,28,0" HorizontalAlignment="Center" VerticalAlignment="Top">
                     <Button Content="Ready" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="SetReady_Click"/>
                     <Button Content="Not ready" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="75" Click="SetNotReady_Click" RenderTransformOrigin="0.773,1.455"/>
+                    <Button Content="Start Chat" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="StartSessionChat_Click" Margin="0,26,0,-26"/>
                 </Grid>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="ActiveCallPanel" Header="Active call" HorizontalAlignment="Left" Margin="239,214,0,0" Width="486" Height="311" VerticalAlignment="Top">
             <Grid>
-                <Grid Margin="0,10,304,141">
+                <Grid Margin="0,10,304,170">
                     <Label Content="{Binding ActiveCall.Id, FallbackValue=(None)}" VerticalAlignment="Top" FontWeight="Bold" HorizontalContentAlignment="Center"/>
                     <Button IsEnabled="{Binding ActiveCall.AnswerCapable, FallbackValue=false}" Content="Answer" HorizontalAlignment="Center" Margin="0,31,0,0" VerticalAlignment="Top" Width="74" Click="AnswerButton_Click"/>
                     <Button IsEnabled="{Binding ActiveCall.HangupCapable, FallbackValue=false}" Content="Hangup" HorizontalAlignment="Center" Margin="0,58,0,0" VerticalAlignment="Top" Width="74" Click="HangupButton_Click"/>
                     <Label Content="{Binding ActiveCall.UserData.ContactName, FallbackValue=(Test Data)}" Margin="0,85,0,0" VerticalAlignment="Top" FontWeight="Bold" HorizontalContentAlignment="Center"/>
                 </Grid>
-                <WindowsFormsHost Margin="200,36,10,10" HorizontalAlignment="Stretch" Width="Auto" Height="Auto" VerticalAlignment="Stretch">
+                <WindowsFormsHost Margin="200,41,10,85" HorizontalAlignment="Stretch" Width="Auto" Height="Auto" VerticalAlignment="Stretch">
                     <wf:PropertyGrid x:Name="userDataPropertyGrid" HelpVisible="False" ToolbarVisible="False" PropertySort="NoSort"/>
                 </WindowsFormsHost>
                 <Label Content="User Data" HorizontalAlignment="Left" Margin="200,10,0,0" Height="26" VerticalAlignment="Top"/>
                 <Button Content="Test Toast" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Click="TestToast_Click" Height="22" VerticalAlignment="Bottom"/>
+                <Grid HorizontalAlignment="Left" Margin="200,0,0,10" Width="264" Height="70" VerticalAlignment="Bottom">
+                    <TextBox x:Name="UserDataKey" HorizontalAlignment="Left" Height="23" Margin="43,8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="87"/>
+                    <Label Content="Key" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="UserDataValue" HorizontalAlignment="Left" Height="23" Margin="43,37,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="87"/>
+                    <Label Content="Value" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
+                    <Button IsEnabled="{Binding ActiveCall.AttachUserDataCapable, FallbackValue=false}" Content="Attach" HorizontalAlignment="Left" Margin="153,8,0,0" VerticalAlignment="Top" Width="101" Click="AttachUserData_Click"/>
+                    <Button IsEnabled="{Binding ActiveCall.UpdateUserDataCapable, FallbackValue=false}" Content="Update" HorizontalAlignment="Left" Margin="153,32,0,0" VerticalAlignment="Top" Width="101" Click="UpdateUserData_Click"/>
+                </Grid>
             </Grid>
         </GroupBox>
         <GroupBox x:Name="CallsPanel" Header="Calls" Margin="239,10,0,326" HorizontalAlignment="Left" Width="486">

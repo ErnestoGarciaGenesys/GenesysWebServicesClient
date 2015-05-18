@@ -133,9 +133,31 @@ namespace Genesys.WebServicesClient.Components
 
         #region Operations
 
-        public Task ChangeState(string value)
+        public Task DoOperation(string value)
         {
-            return Connection.InternalClient.CreateRequest("POST", "/api/v2/me", new { operationName = value }).SendAsync();
+            return PostMe(new { operationName = value });
+        }
+
+        public Task StartContactCenterSession(IEnumerable<string> channels, string place, string loginCode, string queue, string devicePath)
+        {
+            return PostMe(
+                new {
+                    operationName = "StartContactCenterSession",
+                    channels = channels,
+                    //loginCode = loginCode,
+                    //queue = queue,
+                    //devicePath = devicePath,
+                });
+        }
+
+        public Task EndContactCenterSession()
+        {
+            return PostMe(new { operationName = "EndContactCenterSession" });
+        }
+
+        private Task PostMe(object jsonContent)
+        {
+            return Connection.InternalClient.CreateRequest("POST", "/api/v2/me", jsonContent).SendAsync();
         }
 
         #endregion Operations

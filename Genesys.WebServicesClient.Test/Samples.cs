@@ -38,7 +38,7 @@ namespace Genesys.WebServicesClient.Test
                 var versionResponse = client.CreateRequest("GET", "/api/v2/diagnostics/version").SendAsync().Result;
                 TestContext.WriteLine("Received: {0}", versionResponse);
 
-                using (var eventReceiver = client.CreateEventReceiver())
+                using (var eventReceiver = client.CreateEventReceiver(new GenesysEventReceiver.Setup()))
                 {
                     var subscription = eventReceiver.SubscribeAll((s, e) =>
                     {

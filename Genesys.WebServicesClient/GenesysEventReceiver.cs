@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient
@@ -22,34 +23,39 @@ namespace Genesys.WebServicesClient
         static readonly TraceSource LogEventTransport = new TraceSource(Namespace + "EVENT.TRANSPORT");
         static readonly TraceSource LogEventTransportHeaders = new TraceSource(Namespace + ".EVENT.TRANSPORT.HEADERS");
 
-    	readonly BayeuxClient bayeuxClient;
+    	readonly ModifiedBayeuxClient bayeuxClient;
     	readonly TaskScheduler taskScheduler;
         readonly TaskFactory taskFactory;
+        readonly ThreadSafe threadSafe;
 
         volatile IList<EventSubscription> subscriptions = new List<EventSubscription>();
 	
         // Synchronize on bayeuxClient for access.
         bool isConnected = true;
 
-        protected internal GenesysEventReceiver(GenesysClient client)
+        protected internal GenesysEventReceiver(GenesysClient client, Setup setup)
         {
             var headers = new KeyValuePair<string, string>[]
             {
                 new KeyValuePair<string, string>("Authorization", "Basic " + client.credentials)
             };
 
-            bayeuxClient = new ModifiedBayeuxClient(client.setup.ServerUri + "/api/v2/notifications",
-                new List<ClientTransport>()
-                {
-                    new WebSocketTransport(headers),
-                    new LongPollingTransportWithCredentials(null, client.credentials),
-                });
+            var transports = new List<ClientTransport>();
+            
+            if (setup.WebSocketsEnabled)
+                transports.Add(new WebSocketTransport(headers));
+            
+            transports.Add(new LongPollingTransportWithCredentials(null, client.credentials));
+
+            bayeuxClient = new ModifiedBayeuxClient(client.setup.ServerUri + "/api/v2/notifications", transports);
 
             if (client.setup.AsyncTaskScheduler == null)
                 throw new Exception("AsyncTaskScheduler must have a value in order to create an event-receiver");
             this.taskScheduler = client.setup.AsyncTaskScheduler;
 
             this.taskFactory = new TaskFactory(taskScheduler);
+
+            threadSafe = new ThreadSafe(bayeuxClient);
         }
 
         /// <summary>
@@ -63,27 +69,82 @@ namespace Genesys.WebServicesClient
         /// 
         /// <exception cref="OpenFailedException"/>
         /// <exception cref="TimeoutException"/>
-	    public void Open(int timeoutMs)
+        public void Open(int timeoutMs)
         {
-            Log.TraceInformation("BayeuxClient handshaking...");
-            bayeuxClient.handshake();
-            BayeuxClient.State state = bayeuxClient.waitFor(timeoutMs,
-                new List<BayeuxClient.State>() {
-                    BayeuxClient.State.CONNECTED,
-                    BayeuxClient.State.DISCONNECTED
-                });
-            
-            Log.TraceInformation("BayeuxClient " + state);
+            threadSafe.OpenImpl(timeoutMs, CancellationToken.None);
+        }
 
-            switch (state)
+        public async Task OpenAsync(int timeoutMs, CancellationToken cancellationToken)
+        {
+            cancellationToken.Register(() =>
             {
-                case BayeuxClient.State.CONNECTED:
-                    break;
-                case BayeuxClient.State.INVALID:
-                    throw new TimeoutException("BayeuxClient open timeout");
-                case BayeuxClient.State.DISCONNECTED:
-                default:
-                    throw new OpenFailedException("BayeuxClient failed to open. State = " + state);
+                bayeuxClient.disconnect();
+            });
+
+            await Task.Factory.StartNew(
+                () => threadSafe.OpenImpl(timeoutMs, cancellationToken),
+                TaskCreationOptions.LongRunning);
+        }
+
+        // Methods that can run in the background, in a worker thread.
+        // They are put in a separate class in order to make sure that they don't access fields that are not prepared
+        // for multithreaded access.
+        class ThreadSafe
+        {
+        	readonly ModifiedBayeuxClient bayeuxClient;
+    
+            public ThreadSafe(ModifiedBayeuxClient bayeuxClient)
+            {
+                this.bayeuxClient = bayeuxClient;
+            }
+
+            public void OpenImpl(int timeoutMs, CancellationToken cancellationToken)
+            {
+                Log.TraceInformation("BayeuxClient handshaking...");
+                bayeuxClient.handshake();
+                BayeuxClient.State state = bayeuxClient.waitFor(timeoutMs,
+                    new List<BayeuxClient.State>() {
+                        // BayeuxClient.State.HANDSHAKING is the current state, we don't wait for it.
+                        // BayeuxClient.State.CONNECTING is the successful next state, so we let it execute until CONNECTED.
+                        BayeuxClient.State.UNCONNECTED,
+                        BayeuxClient.State.REHANDSHAKING,
+                        BayeuxClient.State.CONNECTED,
+                        BayeuxClient.State.DISCONNECTING,
+                        BayeuxClient.State.DISCONNECTED
+                    });
+
+                Log.TraceInformation("BayeuxClient state after handshake: " + state);
+
+                switch (state)
+                {
+                    case BayeuxClient.State.CONNECTED: // success and finished.
+                    case BayeuxClient.State.DISCONNECTING: // is received when disconnect was requested in the process.
+                        break;
+
+                    case BayeuxClient.State.UNCONNECTED: // is received for a failed connection, which will be retried by the BayeuxClient.
+                    case BayeuxClient.State.REHANDSHAKING: // is received for a failed handshake, which will be retried by the BayeuxClient.
+                    case BayeuxClient.State.DISCONNECTED: // failed
+                        var ex = bayeuxClient.EraseLastException();
+                        var causeOrBlank = ex == null ?
+                            "" :
+                            ": " + ex.Message;
+
+                        if (ex is TimeoutException)
+                        {
+                            throw new TimeoutException("Handshake operation timed out" + causeOrBlank, ex);
+                        }
+                        else
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            throw new OpenFailedException("BayeuxClient failed to open" + causeOrBlank, ex);
+                        }
+
+                    case BayeuxClient.State.INVALID: // none of the awaited states were received
+                        throw new TimeoutException("Handshake operation timed out");
+
+                    default: // shouldn't happen
+                        throw new Exception("Unexpected state received while waiting handshake: " + state);
+                }
             }
         }
 
@@ -212,87 +273,105 @@ namespace Genesys.WebServicesClient
         }
 	
 	
-    //private static void logRequest(HttpExchange exchange) {
-    //    String content;
-    //    try {
-    //        content = new String(exchange.getRequestContent().array(), "UTF-8");
-    //    } catch (UnsupportedEncodingException e) {
-    //        throw new RuntimeException(e);
-    //    }
+        //private static void logRequest(HttpExchange exchange) {
+        //    String content;
+        //    try {
+        //        content = new String(exchange.getRequestContent().array(), "UTF-8");
+        //    } catch (UnsupportedEncodingException e) {
+        //        throw new RuntimeException(e);
+        //    }
 		
-    //    LOG_EVENT_TRANSPORT.debug(
-    //        "Comet request to server: " + exchange.getAddress() +
-    //        ", " + exchange.getMethod() + " " + exchange.getRequestURI() +
-    //        ", content: " + content);
+        //    LOG_EVENT_TRANSPORT.debug(
+        //        "Comet request to server: " + exchange.getAddress() +
+        //        ", " + exchange.getMethod() + " " + exchange.getRequestURI() +
+        //        ", content: " + content);
 		
-    //    Jetty769Util.logHeaders(LOG_EVENT_TRANSPORT_HEADERS, exchange.getRequestFields());
-    //}
+        //    Jetty769Util.logHeaders(LOG_EVENT_TRANSPORT_HEADERS, exchange.getRequestFields());
+        //}
 	
-    ///** 
-    // * <p>The {@link Setup} class is not thread-safe. Therefore always do the whole setup
-    // * and creation of a {@link GenesysEventReceiver} in the same thread, or use according
-    // * multi-threading techniques.
-    // */
-    //public static class Setup {
-    //    private final GenesysClient client;
-    //    private final CookieSession cookieSession;
-    //    private final Authentication authentication;
-    //    private Executor eventExecutor;
-    //    private boolean webSocketEnabled;
+        ///** 
+        // * <p>The {@link Setup} class is not thread-safe. Therefore always do the whole setup
+        // * and creation of a {@link GenesysEventReceiver} in the same thread, or use according
+        // * multi-threading techniques.
+        // */
+        public class Setup
+        {
+            //    private final CookieSession cookieSession;
+            //    private final Authentication authentication;
+            //    private Executor eventExecutor;
+            bool webSocketsEnabled = true;
 
-    //    protected Setup(GenesysClient client,
-    //            CookieSession session, Authentication authentication) {
-    //        this.client = client;
-    //        this.cookieSession = session;
-    //        this.authentication = authentication;
-			
-    //        String webSocketProperty = System.getProperty("com.genesys.wsclient.websocket");
-    //        this.webSocketEnabled = webSocketProperty == null
-    //                ? true
-    //                : Boolean.parseBoolean(webSocketProperty);
-    //    }
-		
-    //    public GenesysEventReceiver create() {
-    //        if (eventExecutor == null) {
-    //            eventExecutor = client.asyncExecutor;
-    //            if (eventExecutor == null) {
-    //                throw new IllegalStateException("eventExecutor is mandatory");
-    //            }
-    //        }
-    //        return new GenesysEventReceiver(this);
-    //    }
+            //public Setup(CookieSession session, Authentication authentication) {
+            //{
+                //        this.cookieSession = session;
+                //        this.authentication = authentication;
 
-    //    /**
-    //     * (Mandatory if GenesysClient asyncExecutor not set) Executor for handling events received.
-    //     */
-    //    public Setup eventExecutor(Executor eventExecutor) {
-    //        this.eventExecutor = eventExecutor;
-    //        return this;
-    //    }
-		
-    //    /**
-    //     * (Optional) Disable the use of WebSocket.
-    //     * 
-    //     * <p>By default, WebSocket is the preferred
-    //     * transport layer for events, and HTTP long-polling is used as a fall-back.
-    //     * 
-    //     * <p>WebSocket can also be disabled by setting the system property
-    //     * <code>com.genesys.wsclient.websocket=false</code>.
-    //     */
-    //    public Setup disableWebSocket() {
-    //        webSocketEnabled = false;
-    //        return this;
-    //    }
+                //        String webSocketProperty = System.getProperty("com.genesys.wsclient.websocket");
+                //        this.webSocketEnabled = webSocketProperty == null
+                //                ? true
+                //                : Boolean.parseBoolean(webSocketProperty);
+            //}
+
+            //public GenesysEventReceiver Create()
+            //{
+                //        if (eventExecutor == null) {
+                //            eventExecutor = client.asyncExecutor;
+                //            if (eventExecutor == null) {
+                //                throw new IllegalStateException("eventExecutor is mandatory");
+                //            }
+                //        }
+
+            //    return new GenesysEventReceiver(this);
+            //}
+
+            //    /**
+            //     * (Mandatory if GenesysClient asyncExecutor not set) Executor for handling events received.
+            //     */
+            //    public Setup eventExecutor(Executor eventExecutor) {
+            //        this.eventExecutor = eventExecutor;
+            //        return this;
+            //    }
+
+            public bool WebSocketsEnabled
+            {
+                get { return webSocketsEnabled; }
+                set { webSocketsEnabled = value; }
+            }
+
+            //    /**
+            //     * (Optional) Disable the use of WebSocket.
+            //     * 
+            //     * <p>By default, WebSocket is the preferred
+            //     * transport layer for events, and HTTP long-polling is used as a fall-back.
+            //     * 
+            //     * <p>WebSocket can also be disabled by setting the system property
+            //     * <code>com.genesys.wsclient.websocket=false</code>.
+            //     */
+            //    public Setup disableWebSocket() {
+            //        webSocketEnabled = false;
+            //        return this;
+            //    }
+        }
 
         class ModifiedBayeuxClient : BayeuxClient
         {
+            public Exception lastException;
+
             public ModifiedBayeuxClient(String url, IList<ClientTransport> transports)
                 : base(url, transports)
             { }
 
             public override void onFailure(Exception e, IList<IMessage> messages)
             {
-                Log.TraceEvent(TraceEventType.Error, 10, "BayeuxClient failure: %s\n%s", e, e.StackTrace);
+                lastException = e;
+                Log.TraceEvent(TraceEventType.Error, 10, "BayeuxClient failure: {0}\n{1}", e, e.StackTrace);
+            }
+
+            public Exception EraseLastException()
+            {
+                var e = lastException;
+                lastException = null;
+                return e;
             }
         }
 
@@ -311,7 +390,5 @@ namespace Genesys.WebServicesClient
                 request.Headers["Authorization"] = "Basic " + credentials;
             }
         }
-
-
     }
 }

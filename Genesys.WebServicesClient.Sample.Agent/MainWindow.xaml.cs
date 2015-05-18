@@ -29,7 +29,10 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         {
             InitializeComponent();
 
-            genesysConnection = new GenesysConnection();
+            genesysConnection = new GenesysConnection()
+                {
+                    WebSocketsEnabled = false,
+                };
 
             genesysUser = new GenesysUser()
                 {
@@ -79,32 +82,6 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             }
         }
 
-        void SetReady_Click(object sender, RoutedEventArgs e)
-        {
-            genesysUser.ChangeState("Ready");
-        }
-
-        void SetNotReady_Click(object sender, RoutedEventArgs e)
-        {
-            genesysUser.ChangeState("NotReady");
-        }
-
-        void AnswerButton_Click(object sender, RoutedEventArgs e)
-        {
-            genesysCallManager.ActiveCall.Answer();
-        }
-
-        void HangupButton_Click(object sender, RoutedEventArgs e)
-        {
-            genesysCallManager.ActiveCall.Hangup();
-        }
-
-        void TestToast_Click(object sender, RoutedEventArgs e)
-        {
-            ToastWindow toast = new ToastWindow();
-            toast.Show();
-        }
-
         async void OpenConnection_Click(object sender, RoutedEventArgs e)
         {
             genesysConnection.ServerUri = ServerUri.Text;
@@ -126,6 +103,53 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         void CloseConnection_Click(object sender, RoutedEventArgs e)
         {
             genesysConnection.Dispose();
+        }
+
+        void SetReady_Click(object sender, RoutedEventArgs e)
+        {
+            genesysUser.DoOperation("Ready");
+        }
+
+        void SetNotReady_Click(object sender, RoutedEventArgs e)
+        {
+            genesysUser.DoOperation("NotReady");
+        }
+
+        void StartSessionChat_Click(object sender, RoutedEventArgs e)
+        {
+            genesysUser.StartContactCenterSession(new string[] { "chat" }, null, null, null, null);
+        }
+        
+        void AnswerButton_Click(object sender, RoutedEventArgs e)
+        {
+            genesysCallManager.ActiveCall.Answer();
+        }
+
+        void HangupButton_Click(object sender, RoutedEventArgs e)
+        {
+            genesysCallManager.ActiveCall.Hangup();
+        }
+
+        void AttachUserData_Click(object sender, RoutedEventArgs e)
+        {
+            genesysCallManager.ActiveCall.AttachUserData(new Dictionary<string, string>()
+                {
+                    { UserDataKey.Text, UserDataValue.Text },
+                });
+        }
+
+        void UpdateUserData_Click(object sender, RoutedEventArgs e)
+        {
+            genesysCallManager.ActiveCall.UpdateUserData(new Dictionary<string, string>()
+                {
+                    { UserDataKey.Text, UserDataValue.Text },
+                });
+        }
+
+        void TestToast_Click(object sender, RoutedEventArgs e)
+        {
+            ToastWindow toast = new ToastWindow();
+            toast.Show();
         }
     }
 }

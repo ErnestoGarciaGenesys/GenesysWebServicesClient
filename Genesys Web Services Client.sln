@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cometd", "..\CometD.NET\cometd.csproj", "{CE60C8C6-3F04-447B-946C-D22397E39EC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.ObservableResource", "Genesys.ObservableResource\Genesys.ObservableResource.csproj", "{F8B3E095-A866-46CF-9EB3-45DE1347A40D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Components.Test", "Genesys.WebServicesClient.Components.Test\Genesys.WebServicesClient.Components.Test.csproj", "{15CCDB7F-0136-4D53-8362-C4FC9619E510}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.WebServicesClient.Test", "Genesys.WebServicesClient.Test\Genesys.WebServicesClient.Test.csproj", "{4E81D71A-8636-49E0-AD21-E845D26D32E9}"
@@ -45,10 +43,6 @@ Global
 		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE60C8C6-3F04-447B-946C-D22397E39EC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8B3E095-A866-46CF-9EB3-45DE1347A40D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15CCDB7F-0136-4D53-8362-C4FC9619E510}.Release|Any CPU.ActiveCfg = Release|Any CPU

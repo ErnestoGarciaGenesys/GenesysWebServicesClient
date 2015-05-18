@@ -256,7 +256,7 @@ namespace Genesys.WebServicesClient.Impl
                 client.Open();
                 bool completed = _openedEvent.WaitOne(getConnectTimeout());
                 if (!completed)
-                    throw new TimeoutException("open");
+                    throw new TimeoutException("WebSocket open operation timed out");
                 if (_openedException != null)
                     throw _openedException;
 

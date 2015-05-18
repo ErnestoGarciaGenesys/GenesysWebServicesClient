@@ -13,6 +13,6 @@ namespace Genesys.WebServicesClient.Resources
         public string state;
         public IList<string> capabilities;
         public IDictionary<string, object> userData;
-        public IList<string> participants;
+        public IList<object> participants;
     }
 }

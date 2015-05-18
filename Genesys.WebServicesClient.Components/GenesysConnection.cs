@@ -32,6 +32,14 @@ namespace Genesys.WebServicesClient.Components
             set { openTimeoutMs = value; }
         }
 
+        bool webSocketsEnabled = true;
+        [Category("Initialization"), DefaultValue(true)]
+        public bool WebSocketsEnabled
+        {
+            get { return webSocketsEnabled; }
+            set { webSocketsEnabled = value; }
+        }
+
         #endregion Initialization Properties
 
         /// <summary>
@@ -58,11 +66,12 @@ namespace Genesys.WebServicesClient.Components
             }
             .Create();
 
-            eventReceiver = client.CreateEventReceiver();
+            eventReceiver = client.CreateEventReceiver(new GenesysEventReceiver.Setup()
+                {
+                    WebSocketsEnabled = webSocketsEnabled,
+                });
 
-            await Task.Factory.StartNew(
-                () => eventReceiver.Open(OpenTimeoutMs),
-                TaskCreationOptions.LongRunning);
+            await eventReceiver.OpenAsync(OpenTimeoutMs, cancellationToken);
         }
 
         protected override void StopImpl()
@@ -85,10 +94,10 @@ namespace Genesys.WebServicesClient.Components
         [ReadOnly(true)]
         public ConnectionState ConnectionState
         {
-            get { return ToState(InternalActivationStage); }
+            get { return ToConnectionState(InternalActivationStage); }
         }
 
-        ConnectionState ToState(ActivationStage s)
+        ConnectionState ToConnectionState(ActivationStage s)
         {
             switch (s)
             {
@@ -105,6 +114,7 @@ namespace Genesys.WebServicesClient.Components
         protected override void OnActivationStageChanged()
         {
             base.OnActivationStageChanged();
+
             StartHierarchyUpdate(doLast: postEvents =>
                 RaisePropertyChanged(postEvents, "ConnectionState"));
         }
