@@ -61,7 +61,7 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        void RefreshDevice(IDelayedEvents doLast, IReadOnlyList<DeviceResource> devices, object[] devicesData)
+        void RefreshDevice(IPostEvents doLast, IReadOnlyList<DeviceResource> devices, object[] devicesData)
         {
             DeviceResource device = null;
             IDictionary<string, object> newDeviceData = null;

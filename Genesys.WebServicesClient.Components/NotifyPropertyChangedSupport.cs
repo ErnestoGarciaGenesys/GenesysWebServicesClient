@@ -29,7 +29,7 @@ namespace Genesys.WebServicesClient.Components
             return GetAttributeByName(FirstToLower(propertyName));
         }
 
-        protected void UpdateAttributes(IDelayedEvents doLast, IDictionary<string, object> newResourceData)
+        protected void UpdateAttributes(IPostEvents doLast, IDictionary<string, object> newResourceData)
         {
             var oldResource = ResourceData;
 
@@ -71,7 +71,7 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler Updated;
 
-        protected void RaiseUpdated(IDelayedEvents postEvents)
+        protected void RaiseUpdated(IPostEvents postEvents)
         {
             postEvents.Add(() =>
             {
@@ -96,12 +96,12 @@ namespace Genesys.WebServicesClient.Components
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public interface IDelayedEvents
+        public interface IPostEvents
         {
             void Add(Action a);
         }
 
-        protected void RaisePropertyChanged(IDelayedEvents ev, string propertyName)
+        protected void RaisePropertyChanged(IPostEvents ev, string propertyName)
         {
             ev.Add(() =>
             {
@@ -114,11 +114,15 @@ namespace Genesys.WebServicesClient.Components
             GetType().GetProperty(propertyName).SetValue(this, value);
         }
 
-        protected void ChangeAndNotifyProperty(IDelayedEvents ev, string propertyName, object value)
+        protected void ChangeAndNotifyProperty(IPostEvents ev, string propertyName, object value)
         {
-            // TODO: check if value has really changed? Does not work for collection objects for example.
-            SetPropertyValue(propertyName, value);
-            RaisePropertyChanged(ev, propertyName);
+            var property = GetType().GetProperty(propertyName);
+
+            if (value != property.GetValue(this))
+            {
+                SetPropertyValue(propertyName, value);
+                RaisePropertyChanged(ev, propertyName);
+            }
         }
 
         #endregion INotifyPropertyChanged

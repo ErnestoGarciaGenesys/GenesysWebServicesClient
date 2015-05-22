@@ -16,14 +16,6 @@ namespace Genesys.WebServicesClient.Components
         // Needs disposal
         IEventSubscription eventSubscription;
 
-        /// <summary>
-        /// Available means that this object has been correctly initialized and all its
-        /// resource properties and methods are available to use.
-        /// </summary>
-        public bool Available { get { return InternalActivationStage == ActivationStage.Started; } }
-
-        public event EventHandler AvailableChanged;
-
         #region Initialization Properties
 
         [Category("Initialization")]
@@ -52,6 +44,16 @@ namespace Genesys.WebServicesClient.Components
             return null;
         }
 
+        /// <summary>
+        /// Available means that this object has been correctly initialized and all its
+        /// resource properties and methods are available to use.
+        /// </summary>
+        public bool Available { get; private set; }
+        
+        //{ return InternalActivationStage == ActivationStage.Started; } }
+
+        public event EventHandler AvailableChanged;
+
         protected override async Task StartImplAsync(CancellationToken cancellationToken)
         {
             eventSubscription = Connection.InternalEventReceiver.SubscribeAll(HandleEvent);
@@ -63,10 +65,14 @@ namespace Genesys.WebServicesClient.Components
                 await Connection.InternalClient.CreateRequest("GET", "/api/v2/me?subresources=*")
                     .SendAsync<UserResourceResponse>(cancellationToken);
 
-            StartHierarchyUpdate(doLast =>
-                UpdateResource(doLast,
+            StartHierarchyUpdate(ev =>
+            {
+                UpdateUserResource(ev,
                     (IDictionary<string, object>)response.AsDictionary["user"],
-                    response.AsType.user));
+                    response.AsType.user);
+
+                ChangeAndNotifyProperty(ev, "Available", true);
+            });
         }
 
         protected override void StopImpl()
@@ -99,8 +105,8 @@ namespace Genesys.WebServicesClient.Components
         {
             if (genesysEvent.Data.ContainsKey("user"))
             {
-                StartHierarchyUpdate(genesysEvent, doLast =>
-                    UpdateResource(doLast,
+                StartHierarchyUpdate(genesysEvent, ev =>
+                    UpdateUserResource(ev,
                         genesysEvent.GetResourceAsType<IDictionary<string, object>>("user"),
                         genesysEvent.GetResourceAsType<UserResource>("user")));
             }
@@ -110,7 +116,7 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        void UpdateResource(IDelayedEvents doLast, IDictionary<string, object> untypedResource, UserResource typedResource)
+        void UpdateUserResource(IPostEvents doLast, IDictionary<string, object> untypedResource, UserResource typedResource)
         {
             UpdateAttributes(doLast, untypedResource);
 

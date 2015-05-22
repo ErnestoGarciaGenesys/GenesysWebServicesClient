@@ -93,10 +93,13 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                 await genesysConnection.StartAsync();
                 await genesysUser.StartAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 genesysConnection.Stop();
-                throw;
+
+                // OperationCanceledException is thrown if Close was requested while Opening. That's OK
+                if (!(ex is OperationCanceledException))
+                    throw;
             }
         }
 

@@ -22,7 +22,7 @@ namespace Genesys.WebServicesClient.Components
         /// <summary>
         /// This method only triggers the activation procedure, it does not wait for completion, nor
         /// guarantees a succesful activation.
-        /// After calling this method, this object will be automatically recovered.
+        /// After calling this method, this object will automatically be recovered.
         /// In order to wait for completion, please use <see cref="StartAsync()"/>.
         /// </summary>
         public void Start()
