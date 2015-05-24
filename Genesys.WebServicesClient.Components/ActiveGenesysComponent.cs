@@ -27,11 +27,16 @@ namespace Genesys.WebServicesClient.Components
         /// </summary>
         public void Start()
         {
+            StartHierarchyUpdate(Start);
+        }
+            
+        protected void Start(IPostEvents ev)
+        {
             AutoRecover = true;
 
             if (activationStage == ActivationStage.Idle && CanStart() != null)
             {
-                var _ = DoStartAsync(background: true); // assigment to prevent warning for not using await
+                var _ = DoStartAsync(ev, background: true); // assigment to prevent warning for not using await
             }
         }
 
@@ -44,7 +49,12 @@ namespace Genesys.WebServicesClient.Components
         /// not be enabled.
         /// </summary>
         /// <exception cref="ActivationException">If object activation failed.</exception>
-        public async Task StartAsync()
+        public Task StartAsync()
+        {
+            return StartHierarchyUpdateAsync(StartAsync);
+        }
+
+        protected async Task StartAsync(IPostEvents ev)
         {
             if (activationStage == ActivationStage.Idle)
             {
@@ -52,7 +62,7 @@ namespace Genesys.WebServicesClient.Components
                 if (exc != null)
                     throw exc;
 
-                await DoStartAsync(background: false);
+                await DoStartAsync(ev, background: false);
             }
             else if (activationStage == ActivationStage.Starting)
             {
@@ -65,20 +75,20 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        async Task DoStartAsync(bool background)
+        async Task DoStartAsync(IPostEvents ev, bool background)
         {
             try
             {
                 SetActivationStage(ActivationStage.Starting);
                 startCancelToken = new CancellationTokenSource();
-                await StartImplAsync(startCancelToken.Token);
+                await StartImplAsync(ev, startCancelToken.Token);
                 AutoRecover = true;
                 SetActivationStage(ActivationStage.Started);
                 awaitingStart.Complete(null);
             }
             catch (Exception e)
             {
-                StopImpl();
+                StopImpl(ev);
                 SetActivationStage(ActivationStage.Idle);
                 awaitingStart.Complete(e);
 
@@ -91,9 +101,14 @@ namespace Genesys.WebServicesClient.Components
 
         public void Stop()
         {
+            StartHierarchyUpdate(Stop);
+        }
+
+        protected void Stop(IPostEvents ev)
+        {
             if (activationStage == ActivationStage.Started)
             {
-                StopImpl();
+                StopImpl(ev);
                 SetActivationStage(ActivationStage.Idle);
             }
             else if (activationStage == ActivationStage.Starting)
@@ -110,7 +125,7 @@ namespace Genesys.WebServicesClient.Components
             base.Dispose(disposing);
         }
 
-        protected abstract Task StartImplAsync(CancellationToken cancellationToken);
+        protected abstract Task StartImplAsync(IPostEvents ev, CancellationToken cancellationToken);
 
         protected virtual Exception CanStart()
         {
@@ -120,7 +135,7 @@ namespace Genesys.WebServicesClient.Components
         /// <summary>
         /// Implementations must not throw exceptions.
         /// </summary>
-        protected abstract void StopImpl();
+        protected abstract void StopImpl(IPostEvents ev);
 
         void SetActivationStage(ActivationStage s)
         {

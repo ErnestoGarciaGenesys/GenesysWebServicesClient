@@ -26,7 +26,7 @@
         </GroupBox>
         <GroupBox x:Name="UserPanel" Header="User" HorizontalAlignment="Left" Margin="10,192,0,0" VerticalAlignment="Top" Width="224" Height="128">
             <Grid>
-                <Label Content="{Binding Available, FallbackValue=Not available, TargetNullValue=Not available}" ContentStringFormat="Service availability: {0}" VerticalAlignment="Top" Margin="0,0,0,0"/>
+                <Label Content="{Binding Available, FallbackValue=False, TargetNullValue=False}" ContentStringFormat="Monitored: {0}" VerticalAlignment="Top" Margin="0,0,0,0"/>
                 <Label Content="{Binding UserName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="UserName: {0}" VerticalAlignment="Top" Margin="0,29,0,0"/>
                 <Label Content="{Binding FirstName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="FirstName: {0}" VerticalAlignment="Top" Margin="0,55,0,0"/>
                 <Label Content="{Binding LastName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="LastName: {0}" VerticalAlignment="Top" Margin="0,81,0,0"/>

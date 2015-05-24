@@ -48,14 +48,14 @@ namespace Genesys.WebServicesClient.Components
         {
             if (e.GenesysEvent == null)
             {
-                RefreshDevice(e.DelayedEvents,
+                RefreshDevice(e.PostEvents,
                     User.UserResource.devices,
                     (object[])User.ResourceData["devices"]);
             }
             else
             {
                 if (e.GenesysEvent.MessageType == "DeviceStateChangeMessage")
-                    RefreshDevice(e.DelayedEvents,
+                    RefreshDevice(e.PostEvents,
                         e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"),
                         e.GenesysEvent.GetResourceAsType<object[]>("devices"));
             }

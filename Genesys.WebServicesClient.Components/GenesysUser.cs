@@ -54,9 +54,9 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler AvailableChanged;
 
-        protected override async Task StartImplAsync(CancellationToken cancellationToken)
+        protected override async Task StartImplAsync(IPostEvents ev, CancellationToken cancellationToken)
         {
-            eventSubscription = Connection.InternalEventReceiver.SubscribeAll(HandleEvent);
+            eventSubscription = Connection.InternalEventReceiver.SubscribeAll(OnEventReceived);
 
             // Documentation about recovering existing state:
             // http://docs.genesys.com/Documentation/HTCC/8.5.2/API/RecoveringExistingState#Reading_device_state_and_active_calls_together
@@ -65,18 +65,17 @@ namespace Genesys.WebServicesClient.Components
                 await Connection.InternalClient.CreateRequest("GET", "/api/v2/me?subresources=*")
                     .SendAsync<UserResourceResponse>(cancellationToken);
 
-            StartHierarchyUpdate(ev =>
-            {
-                UpdateUserResource(ev,
-                    (IDictionary<string, object>)response.AsDictionary["user"],
-                    response.AsType.user);
+            UpdateUserResource(ev,
+                (IDictionary<string, object>)response.AsDictionary["user"],
+                response.AsType.user);
 
-                ChangeAndNotifyProperty(ev, "Available", true);
-            });
+            ChangeAndNotifyProperty(ev, "Available", true);
         }
 
-        protected override void StopImpl()
+        protected override void StopImpl(IPostEvents ev)
         {
+            ChangeAndNotifyProperty(ev, "Available", false);
+
             if (eventSubscription != null)
             {
                 try
@@ -95,13 +94,13 @@ namespace Genesys.WebServicesClient.Components
         protected override void OnParentUpdated(InternalUpdatedEventArgs e)
         {
             if (Connection.ConnectionState == ConnectionState.Open && AutoRecover)
-                Start();
+                Start(e.PostEvents);
 
             if (Connection.ConnectionState == ConnectionState.Close)
-                Stop();
+                Stop(e.PostEvents);
         }
 
-        void HandleEvent(object sender, GenesysEvent genesysEvent)
+        void OnEventReceived(object sender, GenesysEvent genesysEvent)
         {
             if (genesysEvent.Data.ContainsKey("user"))
             {
@@ -112,7 +111,7 @@ namespace Genesys.WebServicesClient.Components
             }
             else
             {
-                StartHierarchyUpdate(genesysEvent, doLast => RaiseUpdated(doLast));
+                StartHierarchyUpdate(genesysEvent, ev => RaiseUpdated(ev));
             }
         }
 

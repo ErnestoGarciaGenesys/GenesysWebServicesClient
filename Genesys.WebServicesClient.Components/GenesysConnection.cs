@@ -56,7 +56,7 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        protected override async Task StartImplAsync(CancellationToken cancellationToken)
+        protected override async Task StartImplAsync(IPostEvents ev, CancellationToken cancellationToken)
         {
             client = new GenesysClient.Setup()
             {
@@ -74,7 +74,7 @@ namespace Genesys.WebServicesClient.Components
             await eventReceiver.OpenAsync(OpenTimeoutMs, cancellationToken);
         }
 
-        protected override void StopImpl()
+        protected override void StopImpl(IPostEvents ev)
         {
             if (eventReceiver != null)
             {
@@ -115,8 +115,8 @@ namespace Genesys.WebServicesClient.Components
         {
             base.OnActivationStageChanged();
 
-            StartHierarchyUpdate(doLast: postEvents =>
-                RaisePropertyChanged(postEvents, "ConnectionState"));
+            StartHierarchyUpdate(ev =>
+                RaisePropertyChanged(ev, "ConnectionState"));
         }
 
         #endregion Observable Properties
