@@ -44,24 +44,25 @@ namespace Genesys.WebServicesClient.Components
 
         string id;
 
-        protected override void OnParentUpdated(InternalUpdatedEventArgs e)
+        protected override void OnParentUpdated(object message, UpdateResult result)
         {
-            if (e.GenesysEvent == null)
+            if (message == null && User.UserResource != null)
             {
-                RefreshDevice(e.PostEvents,
+                RefreshDevice(result,
                     User.UserResource.devices,
                     (object[])User.ResourceData["devices"]);
             }
             else
             {
-                if (e.GenesysEvent.MessageType == "DeviceStateChangeMessage")
-                    RefreshDevice(e.PostEvents,
-                        e.GenesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"),
-                        e.GenesysEvent.GetResourceAsType<object[]>("devices"));
+                var genesysEvent = message as GenesysEvent;
+                if (genesysEvent != null && genesysEvent.MessageType == "DeviceStateChangeMessage")
+                    RefreshDevice(result,
+                        genesysEvent.GetResourceAsType<IReadOnlyList<DeviceResource>>("devices"),
+                        genesysEvent.GetResourceAsType<object[]>("devices"));
             }
         }
 
-        void RefreshDevice(IPostEvents doLast, IReadOnlyList<DeviceResource> devices, object[] devicesData)
+        void RefreshDevice(UpdateResult result, IReadOnlyList<DeviceResource> devices, object[] devicesData)
         {
             DeviceResource device = null;
             IDictionary<string, object> newDeviceData = null;
@@ -87,9 +88,9 @@ namespace Genesys.WebServicesClient.Components
             if (device == null)
                 return;
 
-            UpdateAttributes(doLast, newDeviceData);
+            UpdateAttributes(result.Notifications, newDeviceData);
 
-            ChangeAndNotifyProperty(doLast, "UserState", device.userState);
+            ChangeAndNotifyProperty(result.Notifications, "UserState", device.userState);
         }
 
         // [Browsable(false)], needs to be Browsable for enabling data binding to its properties.

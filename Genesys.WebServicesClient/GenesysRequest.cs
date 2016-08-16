@@ -12,7 +12,6 @@ namespace Genesys.WebServicesClient
 {
     public class GenesysRequest
     {
-        static readonly TraceSource Log = new TraceSource(typeof(GenesysRequest).Namespace);
         static readonly JavaScriptSerializer JsonSerializer = new JavaScriptSerializer();
 
         readonly GenesysClient genesysClient;
@@ -40,30 +39,50 @@ namespace Genesys.WebServicesClient
         {
             return SendAsync<T>(CancellationToken.None);
         }
+
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="OperationCanceledException">On timeout, cancellation or client disposal. See <see cref="HttpClient.Timeout"/></exception>
+        /// <exception cref="TimeoutException">
+        /// On timeout.
+        /// <exception cref="OperationCanceledException">
+        /// On cancellation or client disposal.
+        /// </exception>
+        /// <exception cref="HttpRequestException">
+        /// If the HTTP Status Code indicated an unsuccessful response. See <see cref="HttpResponseMessage.IsSuccessStatusCode"/>
+        /// </exception>
         public async Task<IGenesysResponse<T>> SendAsync<T>(CancellationToken cancellationToken)
             where T : GenesysTypedResponseBase
         {
             var request = new HttpRequestMessage(new HttpMethod(httpMethod), uri);
+
+            string contentString = null;
             if (jsonContent != null)
-                request.Content = CreateJsonContent(jsonContent);
+            {
+                contentString = JsonSerializer.Serialize(jsonContent);
+                request.Content = new StringContent(contentString, Encoding.UTF8, "application/json");
+            }
+
+            GTrace.Trace(GTrace.TraceType.Request , "Sending request: {0} {1} {2}",
+                request.Method, request.RequestUri, contentString);
+                        
             HttpResponseMessage response;
 
-            // throws OperationCanceledException on timeout, cancellation or disposal of the HttpClient.
-            response = await genesysClient.HttpClient.SendAsync(request, cancellationToken);
+            try
+            {
+                // throws OperationCanceledException on timeout, cancellation or disposal of the HttpClient.
+                response = await genesysClient.HttpClient.SendAsync(request, cancellationToken);
+            }
+            catch (OperationCanceledException e)
+            {
+                if (genesysClient.Disposed)
+                    throw;
+                else
+                    throw new TimeoutException("Request timed out", e);
+            }
             
             return await GetResponse<T>(response);
-        }
-
-        StringContent CreateJsonContent(object contentObject)
-        {
-            string contentString = JsonSerializer.Serialize(contentObject);
-            Log.TraceEvent(TraceEventType.Verbose, 20, "Request content: %s", contentString);
-            return new StringContent(contentString, Encoding.UTF8, "application/json");
         }
 
         async Task<IGenesysResponse<T>> GetResponse<T>(HttpResponseMessage httpResponse)
@@ -96,19 +115,22 @@ namespace Genesys.WebServicesClient
         {
             var responseContent = httpResponse.Content;
             if (responseContent == null)
+            {
+                GTrace.Trace(GTrace.TraceType.Request , "Received response: HTTP {0}", httpResponse.StatusCode);
                 throw new InvalidGenesysResponseException("No content");
+            }
 
             string responseAsString;
             try
             {
                 responseAsString = await responseContent.ReadAsStringAsync();
+                GTrace.Trace(GTrace.TraceType.Request, "Received response: HTTP {0} {1}", httpResponse.StatusCode, responseAsString);
             }
             catch (InvalidOperationException e) // thrown for instance when CharSet is not a supported .NET Encoding
             {
+                GTrace.Trace(GTrace.TraceType.Request, "Received response: HTTP {0} with unreadable content", httpResponse.StatusCode);
                 throw new InvalidGenesysResponseException("Unreadable content", e);
             }
-
-            Trace.WriteLine("POST response content: " + responseAsString);
 
             if (httpResponse.Content.Headers.ContentType.MediaType != "application/json")
                 throw new InvalidGenesysResponseException("Content-Type of is not application/json");

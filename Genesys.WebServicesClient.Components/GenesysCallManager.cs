@@ -27,11 +27,12 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        protected override void OnParentUpdated(InternalUpdatedEventArgs e)
+        protected override void OnParentUpdated(object message, UpdateResult result)
         {
-            if (e.GenesysEvent != null && e.GenesysEvent.MessageType == "CallStateChangeMessage")
+            var genesysEvent = message as GenesysEvent;
+            if (genesysEvent != null && genesysEvent.MessageType == "CallStateChangeMessage")
             {
-                var callResource = e.GenesysEvent.GetResourceAsType<CallResource>("call");
+                var callResource = genesysEvent.GetResourceAsType<CallResource>("call");
                 var call = Calls.FirstOrDefault(c => c.Id == callResource.id);
                 bool newCall = call == null;
                 if (newCall)
@@ -41,7 +42,7 @@ namespace Genesys.WebServicesClient.Components
                 }
                 else
                 {
-                    call.HandleEvent(e.PostEvents, e.GenesysEvent.NotificationType, callResource);
+                    call.HandleEvent(result.Notifications, genesysEvent.NotificationType, callResource);
                 }
 
                 if (call.Finished)
@@ -50,7 +51,7 @@ namespace Genesys.WebServicesClient.Components
                 }
 
                 // Quick temporary solution: always notify changes on ActiveCall
-                RaisePropertyChanged(e.PostEvents, "ActiveCall");
+                RaisePropertyChanged(result.Notifications, "ActiveCall");
             }
         }
 

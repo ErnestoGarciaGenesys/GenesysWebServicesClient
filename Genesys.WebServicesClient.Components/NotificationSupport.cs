@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class NotifyPropertyChangedSupport : INotifyPropertyChanged
+    public class NotificationSupport : INotifyPropertyChanged
     {
         #region Attributes
 
@@ -29,7 +29,7 @@ namespace Genesys.WebServicesClient.Components
             return GetAttributeByName(FirstToLower(propertyName));
         }
 
-        protected void UpdateAttributes(IPostEvents doLast, IDictionary<string, object> newResourceData)
+        protected void UpdateAttributes(INotifications doLast, IDictionary<string, object> newResourceData)
         {
             var oldResource = ResourceData;
 
@@ -71,9 +71,9 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler Updated;
 
-        protected void RaiseUpdated(IPostEvents postEvents)
+        protected void RaiseUpdated(INotifications notifs)
         {
-            postEvents.Add(() =>
+            notifs.Notify(() =>
             {
                 if (Updated != null)
                     Updated(this, EventArgs.Empty);
@@ -96,32 +96,33 @@ namespace Genesys.WebServicesClient.Components
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public interface IPostEvents
+        public interface INotifications
         {
-            void Add(Action a);
+            void Notify(Action a);
         }
 
-        protected void RaisePropertyChanged(IPostEvents ev, string propertyName)
+        protected void RaisePropertyChanged(INotifications notifs, string propertyName)
         {
-            ev.Add(() =>
+            notifs.Notify(() =>
             {
                 if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             });
         }
+
         protected void SetPropertyValue(string propertyName, object value)
         {
             GetType().GetProperty(propertyName).SetValue(this, value);
         }
 
-        protected void ChangeAndNotifyProperty(IPostEvents ev, string propertyName, object value)
+        protected void ChangeAndNotifyProperty(INotifications notifs, string propertyName, object value)
         {
             var property = GetType().GetProperty(propertyName);
 
             if (value != property.GetValue(this))
             {
                 SetPropertyValue(propertyName, value);
-                RaisePropertyChanged(ev, propertyName);
+                RaisePropertyChanged(notifs, propertyName);
             }
         }
 

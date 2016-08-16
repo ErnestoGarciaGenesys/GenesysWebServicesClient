@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -53,11 +54,16 @@
   <ItemGroup>
     <Compile Include="Configuration.cs" />
     <Compile Include="GenesysConnectionTest.cs" />
+    <Compile Include="GenesysUserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplesTest.cs" />
     <Compile Include="UsabilityTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CometD.NET\cometd.csproj">
+      <Project>{ce60c8c6-3f04-447b-946c-d22397e39ec6}</Project>
+      <Name>cometd</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Genesys.WebServicesClient.Components\Genesys.WebServicesClient.Components.csproj">
       <Project>{e0e4d679-73a4-4fe8-b387-a3252841c1b3}</Project>
       <Name>Genesys.WebServicesClient.Components</Name>

@@ -43,16 +43,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallUserData.cs" />
-    <Compile Include="DisposableComponent.cs" />
+    <Compile Include="DisposableSupport.cs" />
+    <Compile Include="GenesysComponent.cs" />
     <Compile Include="GenesysDevice.cs" />
     <Compile Include="GenesysUser.cs" />
     <Compile Include="GenesysCall.cs" />
     <Compile Include="GenesysCallManager.cs" />
     <Compile Include="ActiveGenesysComponent.cs" />
     <Compile Include="GenesysConnection.cs" />
-    <Compile Include="NotifyPropertyChangedSupport.cs" />
+    <Compile Include="NotificationSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="GenesysComponent.cs" />
+    <Compile Include="TreeSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Genesys.WebServicesClient\Genesys.WebServicesClient.csproj">

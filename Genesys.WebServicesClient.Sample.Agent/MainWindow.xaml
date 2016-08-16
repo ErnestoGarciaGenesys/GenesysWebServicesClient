@@ -4,11 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Genesys.WebServicesClient.Sample.Agent.WPF.MainWindow"
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         xmlns:properties="clr-namespace:Genesys.WebServicesClient.Sample.Agent.WPF.Properties"
-        Title="Genesys Agent" Height="565.049" Width="747.02">
+        Title="Genesys Agent" Height="808.049" Width="747.02">
     <Window.Resources>
         <properties:Settings x:Key="Settings" />
     </Window.Resources>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="651*"/>
+            <ColumnDefinition Width="88*"/>
+        </Grid.ColumnDefinitions>
         <GroupBox x:Name="ConnectionPanel" Header="Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="177" Width="224">
             <Grid>
                 <Label Content="Server URI" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,8,0,0"/>
@@ -17,8 +21,8 @@
                 <TextBox x:Name="Username" Text="{Binding Default.Username, Source={StaticResource Settings}}" Margin="70,38,10,0" Height="23" VerticalAlignment="Top"/>
                 <Label Content="Password" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,64,0,0"/>
                 <TextBox x:Name="Password" Text="{Binding Default.Password, Source={StaticResource Settings}}" VerticalAlignment="Top" Margin="70,66,10,0" Height="23"/>
-                <Label Content="{Binding ConnectionState, FallbackValue=(Unknown State)}" VerticalAlignment="Top" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="0,100,0,0"/>
-                <Grid Margin="28,0,28,13" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <Label Content="{Binding ConnectionState, FallbackValue=(Unknown State)}" VerticalAlignment="Top" HorizontalContentAlignment="Center" FontWeight="Bold" Margin="0,94,0,0"/>
+                <Grid Margin="28,0,28,8" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                     <Button Content="Open" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="OpenConnection_Click"/>
                     <Button Content="Close" HorizontalAlignment="Left" Margin="80,0,0,0" VerticalAlignment="Top" Width="75" Click="CloseConnection_Click"/>
                 </Grid>
@@ -32,7 +36,7 @@
                 <Label Content="{Binding LastName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="LastName: {0}" VerticalAlignment="Top" Margin="0,81,0,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="DevicePanel" Header="Device" HorizontalAlignment="Left" Margin="10,325,0,10" Width="224">
+        <GroupBox x:Name="DevicePanel" Header="Device" HorizontalAlignment="Left" Margin="10,325,0,0" Width="224" Height="200" VerticalAlignment="Top">
             <Grid>
                 <Label Content="{Binding PhoneNumber, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="PhoneNumber: {0}" VerticalAlignment="Top" Margin="-1,0,1,0"/>
                 <Label Content="{Binding DoNotDisturb, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="DoNotDisturb: {0}" VerticalAlignment="Top" Margin="-1,26,1,0"/>
@@ -45,7 +49,7 @@
                 </Grid>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="ActiveCallPanel" Header="Active call" HorizontalAlignment="Left" Margin="239,214,0,0" Width="486" Height="311" VerticalAlignment="Top">
+        <GroupBox x:Name="ActiveCallPanel" Header="Active call" HorizontalAlignment="Left" Margin="239,214,0,0" Width="486" Height="311" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <Grid>
                 <Grid Margin="0,10,304,170">
                     <Label Content="{Binding ActiveCall.Id, FallbackValue=(None)}" VerticalAlignment="Top" FontWeight="Bold" HorizontalContentAlignment="Center"/>
@@ -68,9 +72,16 @@
                 </Grid>
             </Grid>
         </GroupBox>
-        <GroupBox x:Name="CallsPanel" Header="Calls" Margin="239,10,0,326" HorizontalAlignment="Left" Width="486">
+        <GroupBox x:Name="CallsPanel" Header="Calls" Margin="239,10,0,0" HorizontalAlignment="Left" Width="486" Grid.ColumnSpan="2" Height="199" VerticalAlignment="Top">
             <Grid Margin="10,0,0,0">
                 <DataGrid x:Name="CallDataGrid" Margin="10"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Channels" HorizontalAlignment="Left" Margin="10,530,0,0" VerticalAlignment="Top" Height="109" Width="224">
+            <Grid>
+                <CheckBox x:Name="ChatChannelCheckBox" Content="chat" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                <CheckBox x:Name="TwitterChannelCheckBox" Content="twitter" HorizontalAlignment="Left" Margin="10,31,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                <Button Content="Start session" Click="StartSession_Click" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="106"/>
             </Grid>
         </GroupBox>
     </Grid>

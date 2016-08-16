@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Genesys.WebServicesClient
 {
-    class GenesysMethodException : Exception
+    public class GenesysMethodException : Exception
     {
         public readonly HttpStatusCode HttpStatusCode;
         public readonly int StatusCode;

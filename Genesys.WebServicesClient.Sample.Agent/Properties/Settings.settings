@@ -6,10 +6,13 @@
       <Value Profile="(Default)">http://localhost:5088</Value>
     </Setting>
     <Setting Name="Username" Type="System.String" Scope="User">
-      <Value Profile="(Default)">paveld@redwings.com</Value>
+      <Value Profile="(Default)">ksippo</Value>
     </Setting>
     <Setting Name="Password" Type="System.String" Scope="User">
-      <Value Profile="(Default)">password</Value>
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="OpenConnectionTimeoutMs" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">30000</Value>
     </Setting>
   </Settings>
 </SettingsFile>

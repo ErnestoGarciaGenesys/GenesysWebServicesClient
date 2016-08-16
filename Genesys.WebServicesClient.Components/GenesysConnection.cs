@@ -32,13 +32,25 @@ namespace Genesys.WebServicesClient.Components
             set { openTimeoutMs = value; }
         }
 
-        bool webSocketsEnabled = true;
-        [Category("Initialization"), DefaultValue(true)]
+        bool webSocketsEnabled = false;
+        [Category("Initialization"), DefaultValue(false)]
         public bool WebSocketsEnabled
         {
             get { return webSocketsEnabled; }
             set { webSocketsEnabled = value; }
         }
+
+        /// <summary>
+        /// GenesysClient can be provided externally. This is useful for mocking for example.
+        /// </summary>
+        [Category("Initialization"), Browsable(false)]
+        public Func<GenesysClient> GenesysClientFactory { get; set; }
+
+        /// <summary>
+        /// GenesysEventReceiver can be provided externally. This is useful for mocking for example.
+        /// </summary>
+        [Category("Initialization"), Browsable(false)]
+        public Func<GenesysClient, GenesysEventReceiver> GenesysEventReceiverFactory { get; set; }
 
         #endregion Initialization Properties
 
@@ -56,25 +68,39 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
-        protected override async Task StartImplAsync(IPostEvents ev, CancellationToken cancellationToken)
+        protected override async Task StartImplAsync(UpdateResult result, CancellationToken cancellationToken)
         {
-            client = new GenesysClient.Setup()
+            if (GenesysClientFactory == null)
             {
-                ServerUri = ServerUri,
-                UserName = UserName,
-                Password = Password,
+                client = new GenesysClient.Setup()
+                {
+                    ServerUri = ServerUri,
+                    UserName = UserName,
+                    Password = Password,
+                }
+                .Create();
             }
-            .Create();
+            else
+            {
+                client = GenesysClientFactory();
+            }
 
-            eventReceiver = client.CreateEventReceiver(new GenesysEventReceiver.Setup()
+            if (GenesysEventReceiverFactory == null)
+            {
+                eventReceiver = client.CreateEventReceiver(new GenesysEventReceiver.Setup()
                 {
                     WebSocketsEnabled = webSocketsEnabled,
                 });
+            }
+            else
+            {
+                eventReceiver = GenesysEventReceiverFactory(client);
+            }
 
             await eventReceiver.OpenAsync(OpenTimeoutMs, cancellationToken);
         }
 
-        protected override void StopImpl(IPostEvents ev)
+        protected override void StopImpl(UpdateResult result)
         {
             if (eventReceiver != null)
             {
@@ -111,12 +137,11 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        protected override void OnActivationStageChanged()
+        protected override void OnActivationStageChanged(INotifications notifs)
         {
-            base.OnActivationStageChanged();
+            base.OnActivationStageChanged(notifs);
 
-            StartHierarchyUpdate(ev =>
-                RaisePropertyChanged(ev, "ConnectionState"));
+            RaisePropertyChanged(notifs, "ConnectionState");
         }
 
         #endregion Observable Properties

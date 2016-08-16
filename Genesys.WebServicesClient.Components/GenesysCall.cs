@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public class GenesysCall : NotifyPropertyChangedSupport
+    public class GenesysCall : NotificationSupport
     {
         readonly GenesysCallManager callManager;
         readonly CallUserData userData;
@@ -48,19 +48,19 @@ namespace Genesys.WebServicesClient.Components
             readOnlyCapabilities = new ReadOnlyCollection<string>(capabilities);
         }
 
-        internal void HandleEvent(IPostEvents postEvents, string notificationType, CallResource callResource)
+        internal void HandleEvent(INotifications notifs, string notificationType, CallResource callResource)
         {
             bool userDataChanged = userData.HandleEvent(notificationType, callResource);
             if (userDataChanged)
-                RaisePropertyChanged(postEvents, "UserData");
+                RaisePropertyChanged(notifs, "UserData");
 
             if (notificationType == "StatusChange")
             {
-                ChangeAndNotifyProperty(postEvents, "State", callResource.state);
-                ChangeAndNotifyProperty(postEvents, "Participants", callResource.participants);
+                ChangeAndNotifyProperty(notifs, "State", callResource.state);
+                ChangeAndNotifyProperty(notifs, "Participants", callResource.participants);
                 SetCapabilities(callResource.capabilities);
-                UpdateCapableProperties(postEvents, callResource.capabilities);
-                RaisePropertyChanged(postEvents, "Capabilities");
+                UpdateCapableProperties(notifs, callResource.capabilities);
+                RaisePropertyChanged(notifs, "Capabilities");
             }
         }
 
@@ -74,7 +74,7 @@ namespace Genesys.WebServicesClient.Components
             DoCallOperation(new { operationName = operationName });
         }
 
-        void UpdateCapableProperties(IPostEvents postEvents, IList<string> capabilities)
+        void UpdateCapableProperties(INotifications notifs, IList<string> capabilities)
         {
             foreach (var op in callOperations)
             {
@@ -82,8 +82,8 @@ namespace Genesys.WebServicesClient.Components
                 bool capable = capabilities.Contains(op);
                 SetPropertyValue(propertyName, capable);
                 
-                if (postEvents != null)
-                    RaisePropertyChanged(postEvents, propertyName);
+                if (notifs != null)
+                    RaisePropertyChanged(notifs, propertyName);
             }
         }
 

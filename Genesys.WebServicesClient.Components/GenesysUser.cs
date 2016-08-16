@@ -54,7 +54,7 @@ namespace Genesys.WebServicesClient.Components
 
         public event EventHandler AvailableChanged;
 
-        protected override async Task StartImplAsync(IPostEvents ev, CancellationToken cancellationToken)
+        protected override async Task StartImplAsync(UpdateResult result, CancellationToken cancellationToken)
         {
             eventSubscription = Connection.InternalEventReceiver.SubscribeAll(OnEventReceived);
 
@@ -65,16 +65,16 @@ namespace Genesys.WebServicesClient.Components
                 await Connection.InternalClient.CreateRequest("GET", "/api/v2/me?subresources=*")
                     .SendAsync<UserResourceResponse>(cancellationToken);
 
-            UpdateUserResource(ev,
+            Update(result,
                 (IDictionary<string, object>)response.AsDictionary["user"],
                 response.AsType.user);
 
-            ChangeAndNotifyProperty(ev, "Available", true);
+            ChangeAndNotifyProperty(result.Notifications, "Available", true);
         }
 
-        protected override void StopImpl(IPostEvents ev)
+        protected override void StopImpl(UpdateResult result)
         {
-            ChangeAndNotifyProperty(ev, "Available", false);
+            ChangeAndNotifyProperty(result.Notifications, "Available", false);
 
             if (eventSubscription != null)
             {
@@ -91,33 +91,37 @@ namespace Genesys.WebServicesClient.Components
             }
         }
 
-        protected override void OnParentUpdated(InternalUpdatedEventArgs e)
+        protected override void OnParentUpdated(object message, UpdateResult result)
         {
             if (Connection.ConnectionState == ConnectionState.Open && AutoRecover)
-                Start(e.PostEvents);
+                Start(result);
 
             if (Connection.ConnectionState == ConnectionState.Close)
-                Stop(e.PostEvents);
+                Stop(result);
         }
 
         void OnEventReceived(object sender, GenesysEvent genesysEvent)
         {
-            if (genesysEvent.Data.ContainsKey("user"))
+            UpdateTree(results =>
             {
-                StartHierarchyUpdate(genesysEvent, ev =>
-                    UpdateUserResource(ev,
+                if (genesysEvent.Data.ContainsKey("user"))
+                {
+                    Update(results,
                         genesysEvent.GetResourceAsType<IDictionary<string, object>>("user"),
-                        genesysEvent.GetResourceAsType<UserResource>("user")));
-            }
-            else
-            {
-                StartHierarchyUpdate(genesysEvent, ev => RaiseUpdated(ev));
-            }
+                        genesysEvent.GetResourceAsType<UserResource>("user"));
+                }
+                else
+                {
+                    results.Changed = false;
+                }
+
+                results.MessageToChildren = genesysEvent;
+            });
         }
 
-        void UpdateUserResource(IPostEvents doLast, IDictionary<string, object> untypedResource, UserResource typedResource)
+        void Update(UpdateResult result, IDictionary<string, object> untypedResource, UserResource typedResource)
         {
-            UpdateAttributes(doLast, untypedResource);
+            UpdateAttributes(result.Notifications, untypedResource);
 
             UserResource = typedResource;
 
@@ -149,9 +153,19 @@ namespace Genesys.WebServicesClient.Components
                 new {
                     operationName = "StartContactCenterSession",
                     channels = channels,
-                    //loginCode = loginCode,
-                    //queue = queue,
-                    //devicePath = devicePath,
+                    loginCode = loginCode,
+                    queue = queue,
+                    devicePath = devicePath,
+                });
+        }
+
+        public Task StartContactCenterSession(IEnumerable<string> channels)
+        {
+            return PostMe(
+                new
+                {
+                    operationName = "StartContactCenterSession",
+                    channels = channels,
                 });
         }
 
@@ -192,6 +206,8 @@ namespace Genesys.WebServicesClient.Components
         public string FirstName { get { return GetAttribute() as string; } }
 
         public IEnumerable<string> Roles { get { return GetAttribute() as IEnumerable<string>; } }
+
+        public IEnumerable<UserState> Channels { get { return GetAttribute() as IEnumerable<UserState>; } }
 
         #endregion Attributes
     }

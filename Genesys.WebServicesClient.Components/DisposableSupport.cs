@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Components
 {
-    public abstract class DisposableComponent : NotifyPropertyChangedSupport, IComponent
+    public abstract class DisposableSupport : NotificationSupport, IComponent
     {
         public event EventHandler Disposed;
 

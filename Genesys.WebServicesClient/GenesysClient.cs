@@ -8,32 +8,39 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient
 {
+    // TODO Support cookies
     public class GenesysClient : IDisposable
     {
         internal readonly Setup setup;
-        internal readonly string credentials;
+        internal readonly string encodedCredentials;
 
         readonly HttpClient httpClient;
         readonly bool disposeOfHttpClient;
         readonly string serverUri;
         readonly TimeSpan requestTimeout;
 
+        bool disposed = false;
+
         //TODO readonly CookieSession cookieSession;
         //TODO readonly Authentication authentication;
 
-        // It has been preferred to expose TaskScheduler instead of SynchronizationContext, as a TaskScheduler
-        // is what is actually needed by HttpClient's async methods.
+        // DESIGN: Use of TaskScheduler instead of SynchronizationContext
+        // Preferred as a TaskScheduler is what is actually needed by HttpClient's async methods.
         // A TaskScheduler can be obtained from a SynchronizationContext by using TaskScheduler.FromCurrentSynchronizationContext().
         readonly TaskScheduler asyncTaskScheduler;
 
+        // DESIGN: Use of the Builder pattern
+        // Builder pattern is being used here for the big number of parameters the constructor would need.
+        // It also makes it easier to expand with more optional parameters, and keep backwards compatible.
+        // Builder is used here under the name Setup, which has a clearer meaning. We could change it to Builder if it is more familiar to clients.
         protected GenesysClient(Setup setup)
         {
             this.setup = setup;
             this.httpClient = setup.httpClient;
             this.disposeOfHttpClient = setup.disposeOfHttpClient;
             this.serverUri = setup.serverUri;
-            this.credentials = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(setup.UserName + ":" + setup.Password));
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            this.encodedCredentials = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(setup.UserName + ":" + setup.Password));
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", encodedCredentials);
             this.requestTimeout = setup.RequestTimeout;
             //this.cookieSession = setup.cookieSession;
             //this.authentication = setup.authentication;
@@ -42,6 +49,8 @@ namespace Genesys.WebServicesClient
 
         public void Dispose()
         {
+            disposed = true;
+
             if (disposeOfHttpClient)
                 httpClient.Dispose();
         }
@@ -76,6 +85,15 @@ namespace Genesys.WebServicesClient
             get { return httpClient; }
         }
 
+        public bool Disposed
+        {
+            get { return disposed; }
+        }
+
+        // DESIGN: Use of Properties instead of a Fluent Construction
+        // For 2 reasons:
+        // - C# Object Initializers make a good syntax already
+        // - Fluent interfaces should be kept for very frequent use. Not the case here
         public class Setup
         {
             internal string serverUri;
@@ -83,10 +101,11 @@ namespace Genesys.WebServicesClient
             internal bool disposeOfHttpClient = true;
             //internal Authentication authentication;
             //internal CookieSession cookieSession = new CookieSessionImpl();
-            public TimeSpan ConnectTimeout { get; set; }
+            //public TimeSpan ConnectTimeout { get; set; }
             public TimeSpan RequestTimeout { get; set; }
             public string UserName { get; set; }
             public string Password { get; set; }
+            public bool Anonymous { get; set; }
 
             public Setup()
             {
@@ -95,19 +114,25 @@ namespace Genesys.WebServicesClient
 
             public GenesysClient Create()
             {
-                //if (authentication == null)
-                //    throw new InvalidOperationException(
-                //        "Credentials (username and password) are mandatory. " +
-                //        "If you want no credentials please use anonymous() explicitly.");
+                if ((UserName == null || Password == null) & !Anonymous)
+                    throw new InvalidOperationException(
+                        "UserName and Password are mandatory. " +
+                        "If you want no credentials please set Anonymous explicitly.");
 
                 if (httpClient == null)
+                {
+                    if (serverUri == null)
+                        throw new InvalidOperationException("Either property ServerUri or HttpClient is mandatory");
+
                     httpClient = new HttpClient()
                     {
                         BaseAddress = new Uri(serverUri),
                         Timeout = RequestTimeout,
                     };
+                }
 
                 if (AsyncTaskScheduler == null)
+                {
                     try
                     {
                         AsyncTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
@@ -116,13 +141,14 @@ namespace Genesys.WebServicesClient
                     {
                         AsyncTaskScheduler = null;
                     }
+                }
                     
                 return new GenesysClient(this);
             }
 
             public string ServerUri
             {
-                get
+                internal get
                 {
                     return serverUri;
                 }
@@ -142,16 +168,6 @@ namespace Genesys.WebServicesClient
                 {
                     this.disposeOfHttpClient = value == null;
                     this.httpClient = value;
-                }
-            }
-
-
-            public bool Anonymous
-            {
-                set
-                {
-                    //if (value)
-                    //    this.authentication = NoAuthentication.Instance;
                 }
             }
 

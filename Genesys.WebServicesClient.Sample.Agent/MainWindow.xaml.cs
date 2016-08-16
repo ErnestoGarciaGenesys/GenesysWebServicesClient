@@ -1,4 +1,5 @@
 ﻿using Genesys.WebServicesClient.Components;
+using Genesys.WebServicesClient.Sample.Agent.WPF.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -87,6 +88,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             genesysConnection.ServerUri = ServerUri.Text;
             genesysConnection.UserName = Username.Text;
             genesysConnection.Password = Password.Text;
+            genesysConnection.OpenTimeoutMs = Settings.Default.OpenConnectionTimeoutMs;
 
             try
             {
@@ -153,6 +155,19 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         {
             ToastWindow toast = new ToastWindow();
             toast.Show();
+        }
+
+        void StartSession_Click(object sender, RoutedEventArgs e)
+        {
+            var channels = new List<string>();
+
+            if (ChatChannelCheckBox.IsChecked.Value)
+                channels.Add("chat");
+
+            if (TwitterChannelCheckBox.IsChecked.Value)
+                channels.Add("twitter");
+
+            genesysUser.StartContactCenterSession(channels);
         }
     }
 }

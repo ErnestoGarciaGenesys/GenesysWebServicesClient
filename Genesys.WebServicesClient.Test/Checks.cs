@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Genesys.WebServicesClient.Test
 {
@@ -61,6 +62,36 @@ namespace Genesys.WebServicesClient.Test
         public void use_ThreadPool()
         {
             ThreadPool.QueueUserWorkItem(o => _agent.FirstMediaEmail.Ready());
+        }
+
+        [TestMethod]
+        public void JSON_NET_Deserialize_blank()
+        {
+            var obj = JsonConvert.DeserializeObject("");
+            Assert.IsNull(obj);
+            Console.WriteLine(obj);
+        }
+
+        [TestMethod]
+        public void JSON_NET_Deserialize_space()
+        {
+            var obj = JsonConvert.DeserializeObject(" ");
+            Assert.IsNull(obj);
+        }
+
+        [TestMethod]
+        public void JSON_NET_Deserialize_object()
+        {
+            dynamic obj = JsonConvert.DeserializeObject(@"{ ""key"" : ""value"" }");
+            Assert.IsNotNull(obj);
+        }
+
+        [TestMethod]
+        public void JSON_NET_Deserialize_IDictionary()
+        {
+            var obj = JsonConvert.DeserializeObject<IDictionary<string, object>>(@"{ ""key"" : ""value"", ""dict"": { ""subkey"": ""subvalue""} }");
+            Assert.IsNotNull(obj);
+            Assert.IsInstanceOfType(obj, typeof(IDictionary<string, object>));
         }
     }
 }

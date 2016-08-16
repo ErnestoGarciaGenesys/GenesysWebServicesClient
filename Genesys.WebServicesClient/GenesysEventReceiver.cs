@@ -2,7 +2,6 @@
 using Cometd.Bayeux.Client;
 using Cometd.Client;
 using Cometd.Client.Transport;
-using Genesys.WebServicesClient.Impl;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,16 +12,20 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient
 {
+    // Two Bayeux implementations have been evaluated for its use inside the Genesys Web Services Client Library:
+    // - Oyatel's CometD implementation for .NET (https://github.com/Oyatel/CometD.NET)
+    // - CodeTitans Libraries: http://codetitans.codeplex.com/
+    //
+    // CodeTitans Libraries offer a nice Bayeux implementation, but they don't seem to provide an easy way to
+    // implement Bayeux on top of WebSockets.
+    //
+    // Oyatel's CometD are a translation of CometD Java to .NET. They don't offer a WebSocket implementation, but
+    // it can be provided by translating the CometD Java WebSocketTransport.
+    // 
+    // This is the main reason Oyatel's libraries are chosen here.
+
     public class GenesysEventReceiver : IDisposable
     {
-        static readonly string Namespace = typeof(GenesysEventReceiver).Namespace;
-        static readonly TraceSource Log = new TraceSource(Namespace);
-        static readonly TraceSource LogEvent = new TraceSource(Namespace + ".EVENT");
-        static readonly TraceSource LogEventContentRaw = new TraceSource(Namespace + ".EVENT.CONTENT.RAW");
-        static readonly TraceSource LogEventContentPretty = new TraceSource(Namespace + ".EVENT.CONTENT.PRETTY");
-        static readonly TraceSource LogEventTransport = new TraceSource(Namespace + "EVENT.TRANSPORT");
-        static readonly TraceSource LogEventTransportHeaders = new TraceSource(Namespace + ".EVENT.TRANSPORT.HEADERS");
-
     	readonly ModifiedBayeuxClient bayeuxClient;
     	readonly TaskScheduler taskScheduler;
         readonly TaskFactory taskFactory;
@@ -37,15 +40,25 @@ namespace Genesys.WebServicesClient
         {
             var headers = new KeyValuePair<string, string>[]
             {
-                new KeyValuePair<string, string>("Authorization", "Basic " + client.credentials)
+                new KeyValuePair<string, string>("Authorization", "Basic " + client.encodedCredentials)
             };
 
             var transports = new List<ClientTransport>();
-            
-            if (setup.WebSocketsEnabled)
-                transports.Add(new WebSocketTransport(headers));
-            
-            transports.Add(new LongPollingTransportWithCredentials(null, client.credentials));
+
+            if (setup.Transport != null)
+            {
+                transports.Add(setup.Transport);
+            }
+            else
+            {
+                if (setup.WebSocketsEnabled)
+                    transports.Add(new WebSocketTransport(headers));
+
+                transports.Add(new LongPollingTransport(null, req => req.Headers["Authorization"] = "Basic " + client.encodedCredentials));
+            }
+
+            if (setup.TransportDecorator != null)
+                transports = transports.Select(setup.TransportDecorator).ToList();
 
             bayeuxClient = new ModifiedBayeuxClient(client.setup.ServerUri + "/api/v2/notifications", transports);
 
@@ -100,7 +113,7 @@ namespace Genesys.WebServicesClient
 
             public void OpenImpl(int timeoutMs, CancellationToken cancellationToken)
             {
-                Log.TraceInformation("BayeuxClient handshaking...");
+                GTrace.Trace(GTrace.TraceType.Bayeux, "BayeuxClient handshaking...");
                 bayeuxClient.handshake();
                 BayeuxClient.State state = bayeuxClient.waitFor(timeoutMs,
                     new List<BayeuxClient.State>() {
@@ -113,7 +126,7 @@ namespace Genesys.WebServicesClient
                         BayeuxClient.State.DISCONNECTED
                     });
 
-                Log.TraceInformation("BayeuxClient state after handshake: " + state);
+                GTrace.Trace(GTrace.TraceType.Bayeux, "BayeuxClient state after handshake: " + state);
 
                 switch (state)
                 {
@@ -154,7 +167,7 @@ namespace Genesys.WebServicesClient
         /// </summary>
         public void BeginOpen()
         {
-            Log.TraceInformation("BayeuxClient handshaking...");
+            GTrace.Trace(GTrace.TraceType.Bayeux, "BayeuxClient handshaking...");
             bayeuxClient.handshake();
         }
 
@@ -208,10 +221,9 @@ namespace Genesys.WebServicesClient
 
             public void onMessage(IClientSessionChannel channel, IMessage message)
             {
-				LogEvent.TraceEvent(TraceEventType.Verbose, 1, "Received event on channel: %s", message.Channel);
-                LogEventContentRaw.TraceEvent(TraceEventType.Verbose, 2, "Content: %s", message.JSON);
-                //if (LogEventContentPretty.Switch.ShouldTrace(TraceEventType.Verbose))
-                //    LogEventContentPretty.TraceEvent(TraceEventType.Verbose, 3, "Content:\n%s", JsonUtil.prettify(message.getJSON()));
+                GTrace.Trace(GTrace.TraceType.Event, "Received event. Channel {0}\n{1}",
+                    message.Channel, GTrace.PrettifyJson(message.JSON));
+
                 taskFactory.StartNew(() =>
                     {
                         eventHandler(this, new GenesysEvent(message));
@@ -338,6 +350,10 @@ namespace Genesys.WebServicesClient
                 set { webSocketsEnabled = value; }
             }
 
+            public ClientTransport Transport { get; set; }
+
+            public Func<ClientTransport, ClientTransport> TransportDecorator { get; set; }
+
             //    /**
             //     * (Optional) Disable the use of WebSocket.
             //     * 
@@ -364,7 +380,7 @@ namespace Genesys.WebServicesClient
             public override void onFailure(Exception e, IList<IMessage> messages)
             {
                 lastException = e;
-                Log.TraceEvent(TraceEventType.Error, 10, "BayeuxClient failure: {0}\n{1}", e, e.StackTrace);
+                GTrace.Trace(GTrace.TraceType.BayeuxError, "BayeuxClient failure: {0}\n{1}", e, e.StackTrace);
             }
 
             public Exception EraseLastException()
@@ -372,22 +388,6 @@ namespace Genesys.WebServicesClient
                 var e = lastException;
                 lastException = null;
                 return e;
-            }
-        }
-
-        class LongPollingTransportWithCredentials : CustomizableLongPollingTransport
-        {
-            readonly string credentials;
-
-            public LongPollingTransportWithCredentials(IDictionary<String, Object> options, string credentials) : base(options)
-            {
-                this.credentials = credentials;
-            }
-
-            public override void customize(System.Net.HttpWebRequest request)
-            {
-                base.customize(request);
-                request.Headers["Authorization"] = "Basic " + credentials;
             }
         }
     }
