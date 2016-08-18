@@ -25,6 +25,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         readonly GenesysUser genesysUser;
         readonly GenesysDevice genesysDevice;
         readonly GenesysCallManager genesysCallManager;
+        readonly GenesysChannelManager genesysChannelManager;
 
         public MainWindow()
         {
@@ -50,12 +51,18 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                     User = genesysUser,
                 };
 
+            genesysChannelManager = new GenesysChannelManager()
+                {
+                    User = genesysUser,
+                };
+
             ConnectionPanel.DataContext = genesysConnection;
             UserPanel.DataContext = genesysUser;
             DevicePanel.DataContext = genesysDevice;
             CallsPanel.DataContext = genesysCallManager;
             ActiveCallPanel.DataContext = genesysCallManager;
             CallDataGrid.ItemsSource = genesysCallManager.Calls;
+            ChannelsPanel.DataContext = genesysChannelManager;
 
             genesysUser.Updated += (s, e) =>
             {

@@ -61,6 +61,7 @@
     <Compile Include="OpenFailedException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\CallResource.cs" />
+    <Compile Include="Resources\ChannelResource.cs" />
     <Compile Include="Resources\DeviceResource.cs" />
     <Compile Include="Resources\UserResource.cs" />
     <Compile Include="Resources\UserResourceResponse.cs" />

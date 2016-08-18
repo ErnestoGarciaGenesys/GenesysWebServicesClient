@@ -10,8 +10,7 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="651*"/>
-            <ColumnDefinition Width="88*"/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <GroupBox x:Name="ConnectionPanel" Header="Connection" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="177" Width="224">
             <Grid>
@@ -77,11 +76,12 @@
                 <DataGrid x:Name="CallDataGrid" Margin="10"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Channels" HorizontalAlignment="Left" Margin="10,530,0,0" VerticalAlignment="Top" Height="109" Width="224">
+        <GroupBox x:Name="ChannelsPanel" Header="Channels" HorizontalAlignment="Left" Margin="10,530,0,0" VerticalAlignment="Top" Height="185" Width="224">
             <Grid>
                 <CheckBox x:Name="ChatChannelCheckBox" Content="chat" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
                 <CheckBox x:Name="TwitterChannelCheckBox" Content="twitter" HorizontalAlignment="Left" Margin="10,31,0,0" VerticalAlignment="Top" IsChecked="True"/>
                 <Button Content="Start session" Click="StartSession_Click" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="106"/>
+                <Label Content="{Binding Channels.chat.UserState.DisplayName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="Chat State: {0}" VerticalAlignment="Top" Margin="0,52,0,0"/>
             </Grid>
         </GroupBox>
     </Grid>
