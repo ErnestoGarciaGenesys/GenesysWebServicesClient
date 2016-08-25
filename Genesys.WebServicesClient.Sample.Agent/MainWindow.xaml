@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Genesys.WebServicesClient.Sample.Agent.WPF.MainWindow"
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         xmlns:properties="clr-namespace:Genesys.WebServicesClient.Sample.Agent.WPF.Properties"
-        Title="Genesys Agent" Height="808.049" Width="747.02">
+        Title="Genesys Agent" Height="756.049" Width="1248.02">
     <Window.Resources>
         <properties:Settings x:Key="Settings" />
     </Window.Resources>
@@ -81,7 +81,25 @@
                 <CheckBox x:Name="ChatChannelCheckBox" Content="chat" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
                 <CheckBox x:Name="TwitterChannelCheckBox" Content="twitter" HorizontalAlignment="Left" Margin="10,31,0,0" VerticalAlignment="Top" IsChecked="True"/>
                 <Button Content="Start session" Click="StartSession_Click" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" Width="106"/>
-                <Label Content="{Binding Channels.chat.UserState.DisplayName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="Chat State: {0}" VerticalAlignment="Top" Margin="0,52,0,0"/>
+                <Button Content="End session" Click="EndSession_Click" HorizontalAlignment="Left" Margin="96,37,0,0" VerticalAlignment="Top" Width="106"/>
+                <Label Content="{Binding Channels.chat.UserState.DisplayName, FallbackValue=(Unknown), TargetNullValue=(Unknown)}" ContentStringFormat="Chat State: {0}" VerticalAlignment="Top" Margin="0,64,0,0"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="ChatsPanel" Header="Chats" Margin="733,22,-138,0" HorizontalAlignment="Left" Width="486" Height="114" VerticalAlignment="Top">
+            <Grid Margin="10,0,0,0">
+                <DataGrid x:Name="ChatDataGrid" Margin="10"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="ActiveChatPanel" Header="Active chat" HorizontalAlignment="Left" Margin="733,141,0,0" VerticalAlignment="Top" Height="384" Width="490">
+            <Grid Margin="10,0,0,0">
+                <Label Content="{Binding ActiveChat.State, FallbackValue=(None)}" VerticalAlignment="Top" FontWeight="Bold" Margin="0,10,360,0" />
+                <Button Content="Accept" IsEnabled="{Binding ActiveChat.AcceptCapable, FallbackValue=false}" HorizontalAlignment="Left" Margin="113,12,0,0" VerticalAlignment="Top" Width="75" Click="AcceptChat_Click"/>
+                <Button Content="Reject" IsEnabled="{Binding ActiveChat.RejectCapable, FallbackValue=false}" HorizontalAlignment="Left" Margin="193,12,0,0" VerticalAlignment="Top" Width="75" Click="RejectChat_Click"/>
+                <Button Content="Complete" IsEnabled="{Binding ActiveChat.CompleteCapable, FallbackValue=false}" HorizontalAlignment="Left" Margin="273,12,0,0" VerticalAlignment="Top" Width="75" Click="CompleteChat_Click"/>
+                <TextBox x:Name="ChatMessageTextBox" HorizontalAlignment="Left" Height="23" Margin="10,52,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="258" KeyDown="ChatMessageTextBox_KeyDown"/>
+                <Button Content="Send" IsEnabled="{Binding ActiveChat.SendMessageCapable, FallbackValue=false}" HorizontalAlignment="Left" Margin="273,52,0,0" VerticalAlignment="Top" Width="75" Click="SendMessageChat_Click"/>
+                <Button Content="Leave" IsEnabled="{Binding ActiveChat.LeaveCapable, FallbackValue=false}" HorizontalAlignment="Left" Margin="353,52,0,0" VerticalAlignment="Top" Width="75" Click="LeaveChat_Click"/>
+                <DataGrid x:Name="ChatMessagesDataGrid" Margin="10,96,14,10"/>
             </Grid>
         </GroupBox>
     </Grid>

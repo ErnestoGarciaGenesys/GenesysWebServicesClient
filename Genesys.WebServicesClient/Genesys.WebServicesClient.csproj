@@ -60,9 +60,13 @@
     <Compile Include="InvalidGenesysResponseException.cs" />
     <Compile Include="OpenFailedException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\ChatResource.cs" />
     <Compile Include="Resources\CallResource.cs" />
     <Compile Include="Resources\ChannelResource.cs" />
     <Compile Include="Resources\DeviceResource.cs" />
+    <Compile Include="Resources\InteractionResource.cs" />
+    <Compile Include="Resources\ParticipantResource.cs" />
+    <Compile Include="Resources\MessageResource.cs" />
     <Compile Include="Resources\UserResource.cs" />
     <Compile Include="Resources\UserResourceResponse.cs" />
     <Compile Include="Resources\UserState.cs" />

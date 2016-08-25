@@ -42,16 +42,20 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallUserData.cs" />
+    <Compile Include="GenesysChat.cs" />
+    <Compile Include="GenesysChatMessage.cs" />
+    <Compile Include="GenesysParticipant.cs" />
+    <Compile Include="UserData.cs" />
     <Compile Include="DisposableSupport.cs" />
     <Compile Include="DynamicResource.cs" />
     <Compile Include="GenesysChannels.cs" />
     <Compile Include="GenesysChannelManager.cs" />
     <Compile Include="GenesysComponent.cs" />
     <Compile Include="GenesysDevice.cs" />
+    <Compile Include="GenesysInteraction.cs" />
     <Compile Include="GenesysUser.cs" />
     <Compile Include="GenesysCall.cs" />
-    <Compile Include="GenesysCallManager.cs" />
+    <Compile Include="GenesysInteractionManager.cs" />
     <Compile Include="ActiveGenesysComponent.cs" />
     <Compile Include="GenesysConnection.cs" />
     <Compile Include="NotificationSupport.cs" />

@@ -24,7 +24,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         readonly GenesysConnection genesysConnection;
         readonly GenesysUser genesysUser;
         readonly GenesysDevice genesysDevice;
-        readonly GenesysCallManager genesysCallManager;
+        readonly GenesysInteractionManager genesysInteractionManager;
         readonly GenesysChannelManager genesysChannelManager;
 
         public MainWindow()
@@ -46,7 +46,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                     User = genesysUser,
                 };
 
-            genesysCallManager = new GenesysCallManager()
+            genesysInteractionManager = new GenesysInteractionManager()
                 {
                     User = genesysUser,
                 };
@@ -59,33 +59,42 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
             ConnectionPanel.DataContext = genesysConnection;
             UserPanel.DataContext = genesysUser;
             DevicePanel.DataContext = genesysDevice;
-            CallsPanel.DataContext = genesysCallManager;
-            ActiveCallPanel.DataContext = genesysCallManager;
-            CallDataGrid.ItemsSource = genesysCallManager.Calls;
+            CallsPanel.DataContext = genesysInteractionManager;
+            ActiveCallPanel.DataContext = genesysInteractionManager;
+            CallDataGrid.ItemsSource = genesysInteractionManager.Calls;
             ChannelsPanel.DataContext = genesysChannelManager;
+            ChatDataGrid.ItemsSource = genesysInteractionManager.Chats;
+            ActiveChatPanel.DataContext = genesysInteractionManager;
 
             genesysUser.Updated += (s, e) =>
             {
                 UpdateUserDataGrid();
             };
 
-            genesysCallManager.Calls.ListChanged += Calls_ListChanged;
+            genesysInteractionManager.Calls.ListChanged += Calls_ListChanged;
+
+            genesysInteractionManager.Chats.ListChanged += Chats_ListChanged;
         }
 
         void Calls_ListChanged(object sender, ListChangedEventArgs e)
         {
             if (e.ListChangedType == ListChangedType.ItemAdded)
             {
-                new ToastWindow(genesysCallManager.Calls[e.NewIndex]).Show();
+                new ToastWindow(genesysInteractionManager.Calls[e.NewIndex]).Show();
             }
+        }
+
+        void Chats_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            ChatMessagesDataGrid.ItemsSource = genesysInteractionManager.ActiveChatMessages;
         }
 
         void UpdateUserDataGrid()
         {
-            if (genesysCallManager.ActiveCall != null)
+            if (genesysInteractionManager.ActiveCall != null)
             {
                 userDataPropertyGrid.SelectedObject = null;
-                userDataPropertyGrid.SelectedObject = genesysCallManager.ActiveCall.UserData;
+                userDataPropertyGrid.SelectedObject = genesysInteractionManager.ActiveCall.UserData;
                 userDataPropertyGrid.Refresh();
             }
         }
@@ -134,17 +143,17 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         
         void AnswerButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.Answer();
+            genesysInteractionManager.ActiveCall.Answer();
         }
 
         void HangupButton_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.Hangup();
+            genesysInteractionManager.ActiveCall.Hangup();
         }
 
         void AttachUserData_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.AttachUserData(new Dictionary<string, string>()
+            genesysInteractionManager.ActiveCall.AttachUserData(new Dictionary<string, string>()
                 {
                     { UserDataKey.Text, UserDataValue.Text },
                 });
@@ -152,7 +161,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
 
         void UpdateUserData_Click(object sender, RoutedEventArgs e)
         {
-            genesysCallManager.ActiveCall.UpdateUserData(new Dictionary<string, string>()
+            genesysInteractionManager.ActiveCall.UpdateUserData(new Dictionary<string, string>()
                 {
                     { UserDataKey.Text, UserDataValue.Text },
                 });
@@ -175,6 +184,48 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
                 channels.Add("twitter");
 
             genesysUser.StartContactCenterSession(channels);
+        }
+
+        void EndSession_Click(object sender, RoutedEventArgs e)
+        {
+            genesysUser.EndContactCenterSession();
+        }
+
+        void AcceptChat_Click(object sender, RoutedEventArgs e)
+        {
+           genesysInteractionManager.ActiveChat.Accept(Username.Text);
+        }
+
+        void RejectChat_Click(object sender, RoutedEventArgs e)
+        {
+            genesysInteractionManager.ActiveChat.Reject();
+        }
+
+        void CompleteChat_Click(object sender, RoutedEventArgs e)
+        {
+            genesysInteractionManager.ActiveChat.Complete();
+        }
+
+        void SendMessageChat_Click(object sender, RoutedEventArgs e)
+        {
+            SendMessage();
+        }
+
+        void ChatMessageTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                SendMessage();
+        }
+
+        void SendMessage()
+        {
+            genesysInteractionManager.ActiveChat.SendMessage(ChatMessageTextBox.Text);
+            ChatMessageTextBox.Clear();
+        }
+
+        void LeaveChat_Click(object sender, RoutedEventArgs e)
+        {
+            genesysInteractionManager.ActiveChat.Leave();
         }
     }
 }

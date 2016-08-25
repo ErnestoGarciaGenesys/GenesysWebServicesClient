@@ -55,7 +55,7 @@
             this.userDataKeyTextBox = new System.Windows.Forms.TextBox();
             this.userDataGrid = new System.Windows.Forms.PropertyGrid();
             this.optionLabel = new System.Windows.Forms.Label();
-            this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysCallManager();
+            this.genesysCallManager = new Genesys.WebServicesClient.Components.GenesysInteractionManager();
             this.genesysUser = new Genesys.WebServicesClient.Components.GenesysUser();
             this.genesysConnection = new Genesys.WebServicesClient.Components.GenesysConnection(this.components);
             this.genesysDevice = new Genesys.WebServicesClient.Components.GenesysDevice();
@@ -373,7 +373,7 @@
         private System.Windows.Forms.Button readyButton;
         private System.Windows.Forms.Button notReadyButton;
         private System.Windows.Forms.Label errorsLabel;
-        private Components.GenesysCallManager genesysCallManager;
+        private Components.GenesysInteractionManager genesysCallManager;
         private System.Windows.Forms.Label activeCallStateLabel;
         private System.Windows.Forms.DataGridView callsDataGrid;
         private System.Windows.Forms.Button answerButton;

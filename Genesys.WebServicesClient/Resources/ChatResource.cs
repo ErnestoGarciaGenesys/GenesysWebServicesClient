@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace Genesys.WebServicesClient.Resources
 {
-    public class CallResource : InteractionResource
+    public class ChatResource : InteractionResource
     {
+        public string chatType;
+        public string receivedDate;
     }
 }
