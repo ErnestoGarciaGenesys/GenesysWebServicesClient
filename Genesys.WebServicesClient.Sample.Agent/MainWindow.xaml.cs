@@ -31,10 +31,7 @@ namespace Genesys.WebServicesClient.Sample.Agent.WPF
         {
             InitializeComponent();
 
-            genesysConnection = new GenesysConnection()
-                {
-                    WebSocketsEnabled = false,
-                };
+            genesysConnection = new GenesysConnection();
 
             genesysUser = new GenesysUser()
                 {

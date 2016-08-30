@@ -40,18 +40,6 @@ namespace Genesys.WebServicesClient.Components
             set { webSocketsEnabled = value; }
         }
 
-        /// <summary>
-        /// GenesysClient can be provided externally. This is useful for mocking for example.
-        /// </summary>
-        [Category("Initialization"), Browsable(false)]
-        public Func<GenesysClient> GenesysClientFactory { get; set; }
-
-        /// <summary>
-        /// GenesysEventReceiver can be provided externally. This is useful for mocking for example.
-        /// </summary>
-        [Category("Initialization"), Browsable(false)]
-        public Func<GenesysClient, GenesysEventReceiver> GenesysEventReceiverFactory { get; set; }
-
         #endregion Initialization Properties
 
         /// <summary>
@@ -68,9 +56,29 @@ namespace Genesys.WebServicesClient.Components
             container.Add(this);
         }
 
+        Func<GenesysClient> genesysClientFactory;
+
+        /// <summary>
+        /// GenesysClient can be provided externally. This is useful for mocking for example.
+        /// </summary>
+        public void SetGenesysClientFactory(Func<GenesysClient> genesysClientFactory)
+        {
+            this.genesysClientFactory = genesysClientFactory;
+        }
+
+        Func<GenesysClient, GenesysEventReceiver> genesysEventReceiverFactory;
+
+        /// <summary>
+        /// GenesysEventReceiver can be provided externally. This is useful for mocking for example.
+        /// </summary>
+        public void SetGenesysEventReceiverFactory(Func<GenesysClient, GenesysEventReceiver> genesysEventReceiverFactory)
+        {
+            this.genesysEventReceiverFactory = genesysEventReceiverFactory;
+        }
+
         protected override async Task StartImplAsync(UpdateResult result, CancellationToken cancellationToken)
         {
-            if (GenesysClientFactory == null)
+            if (genesysClientFactory == null)
             {
                 client = new GenesysClient.Setup()
                 {
@@ -82,10 +90,10 @@ namespace Genesys.WebServicesClient.Components
             }
             else
             {
-                client = GenesysClientFactory();
+                client = genesysClientFactory();
             }
 
-            if (GenesysEventReceiverFactory == null)
+            if (genesysEventReceiverFactory == null)
             {
                 eventReceiver = client.CreateEventReceiver(new GenesysEventReceiver.Setup()
                 {
@@ -94,7 +102,7 @@ namespace Genesys.WebServicesClient.Components
             }
             else
             {
-                eventReceiver = GenesysEventReceiverFactory(client);
+                eventReceiver = genesysEventReceiverFactory(client);
             }
 
             await eventReceiver.OpenAsync(OpenTimeoutMs, cancellationToken);
