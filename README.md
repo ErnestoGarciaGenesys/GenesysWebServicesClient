@@ -13,29 +13,32 @@ It features the following libraries:
 How to use this library
 =======================
 
+Include this library's source code into your .NET solution. In order to do that:
+
 Do a clone of this repository.
 
 This library makes use of a [fork of Oyatel's CometD.NET libraries](https://github.com/ErnestoGarciaGenesys/CometD.NET). Do a clone of that repository as well.
 
-and include this library's source code into your project
-
-Include In your solution, add the following projects:
+In your solution, add the following projects:
 
 - `cometd`, from the CometD.NET fork
 - `Genesys.WebServicesClient`, from this repository
 - `Genesys.WebServicesClient.Components`, from this repository
 
-Other dependencies are configured via NuGet.
+(Dependencies on other 3rd party libraries are already configured with NuGet).
 
 
-Using Genesys.WebServicesClient.Components
-==========================================
+Sample Code
+===========
 
-If you include 
+In order to learn how to use this library, it is best if you take a look at the sample applications. These applications only contain one significant source code object, so it is easy to see what is going on.
 
-From a WPF Application
-----------------------
+- `Genesys.WebServicesClient.Sample.Agent.WPF`: This is the WPF sample. Take a look into `MainWindow`.
+- `Genesys.WebServicesClient.Sample.Agent.WinForms`: This is the Windows Forms sample. Take a look into `MainForm`.
 
-As a sample you can use the application in `Genesys.WebServicesClient.Sample.Agent.WPF`.
+You will learn how to:
 
-
+- Create the structure of Genesys components needed for your application
+- Set up and start the connection with Genesys Web Services
+- Bind those components to UI Labels, DataGrids, enablement of Buttons, etc.
+- Implement the actions of Buttons
