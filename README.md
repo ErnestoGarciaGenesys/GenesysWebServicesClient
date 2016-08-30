@@ -22,8 +22,12 @@ This library makes use of a [fork of Oyatel's CometD.NET libraries](https://gith
 In your solution, add the following projects:
 
 - `cometd`, from the CometD.NET fork
-- `Genesys.WebServicesClient`, from this repository
-- `Genesys.WebServicesClient.Components`, from this repository
+
+- `Genesys.WebServicesClient`, from this repository.  
+  Make sure it references the `cometd` project properly. 
+  
+- `Genesys.WebServicesClient.Components`, from this repository.  
+  Make sure it references the `Genesys.WebServicesClient` project properly.
 
 (Dependencies on other 3rd party libraries are already configured with NuGet).
 
